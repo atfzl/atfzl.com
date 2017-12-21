@@ -1,4 +1,6 @@
-import axios from 'axios';
+import fp from 'lodash/fp';
+
+import contentClient from './services/contentful';
 
 export default {
   siteRoot: 'https://atfzl.com',
@@ -6,9 +8,12 @@ export default {
     title: 'React Static',
   }),
   getRoutes: async () => {
-    const { data: posts } = await axios.get(
-      'https://jsonplaceholder.typicode.com/posts',
+    const resp = await contentClient.getEntries();
+
+    const posts = fp.compose(fp.flatMap(fp.get('fields')), fp.get('items'))(
+      resp,
     );
+
     return [
       {
         path: '/',
