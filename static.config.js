@@ -1,11 +1,14 @@
-import axios from 'axios'
+import axios from 'axios';
 
 export default {
+  siteRoot: 'https://atfzl.com',
   getSiteProps: () => ({
     title: 'React Static',
   }),
   getRoutes: async () => {
-    const { data: posts } = await axios.get('https://jsonplaceholder.typicode.com/posts')
+    const { data: posts } = await axios.get(
+      'https://jsonplaceholder.typicode.com/posts',
+    );
     return [
       {
         path: '/',
@@ -33,6 +36,6 @@ export default {
         is404: true,
         component: 'src/containers/404',
       },
-    ]
+    ];
   },
-}
+};
