@@ -10,9 +10,7 @@ export default {
   getRoutes: async () => {
     const resp = await contentClient.getEntries();
 
-    const posts = fp.compose(fp.flatMap(fp.get('fields')), fp.get('items'))(
-      resp,
-    );
+    const posts = resp.items;
 
     return [
       {
@@ -30,7 +28,7 @@ export default {
           posts,
         }),
         children: posts.map(post => ({
-          path: `/post/${post.id}`,
+          path: `/post/${post.fields.id}`,
           component: 'src/containers/Post',
           getProps: () => ({
             post,
