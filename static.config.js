@@ -1,11 +1,9 @@
-import fp from 'lodash/fp';
-
 import contentClient from './services/contentful';
 
 export default {
   siteRoot: 'https://atfzl.com',
   getSiteProps: () => ({
-    title: 'React Static',
+    title: 'Atif Afzal',
   }),
   getRoutes: async () => {
     const resp = await contentClient.getEntries();
