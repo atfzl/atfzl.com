@@ -13,7 +13,7 @@ export default getRouteProps(({ posts }) => (
     }}
   >
     <Head>
-      <title>Atif Afzal Blog</title>
+      <title>Atif Afzal's Blog</title>
     </Head>
     <Heading>Blog Posts</Heading>
     <div>
