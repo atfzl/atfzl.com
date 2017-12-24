@@ -12,9 +12,11 @@
     "serve": "serve dist -p 3000"
   },
   "dependencies": {
+    "@ibm/type": "^0.5.3",
     "contentful": "^5.0.5",
     "lodash": "^4.17.4",
     "marked": "^0.3.7",
+    "normalize.css": "^7.0.0",
     "react": "^16.0.0",
     "react-dom": "^16.0.0",
     "react-router": "^4.2.0",

@@ -9,6 +9,10 @@
     follow-redirects "^1.2.5"
     is-buffer "^1.1.5"
 
+"@ibm/type@^0.5.3":
+  version "0.5.3"
+  resolved "https://registry.yarnpkg.com/@ibm/type/-/type-0.5.3.tgz#aee7a25e85ba9887b7a6870ec86054f6118a9181"
+
 "@types/history@*":
   version "4.6.2"
   resolved "https://registry.yarnpkg.com/@types/history/-/history-4.6.2.tgz#12cfaba693ba20f114ed5765467ff25fdf67ddb0"
@@ -4248,6 +4252,10 @@ normalize-url@^1.4.0:
     prepend-http "^1.0.0"
     query-string "^4.1.0"
     sort-keys "^1.0.0"
+
+normalize.css@^7.0.0:
+  version "7.0.0"
+  resolved "https://registry.yarnpkg.com/normalize.css/-/normalize.css-7.0.0.tgz#abfb1dd82470674e0322b53ceb1aaf412938e4bf"
 
 npm-run-path@^2.0.0:
   version "2.0.2"

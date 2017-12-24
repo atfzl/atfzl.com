@@ -1,11 +1,12 @@
-import React from 'react'
-import { getSiteProps } from 'react-static'
+import React from 'react';
+import { getSiteProps, Link } from 'react-static';
 //
-import logoImg from '../logo.png'
 
 export default getSiteProps(() => (
-  <div>
-    <h1 style={{ textAlign: 'center' }}>Welcome to</h1>
-    <img src={logoImg} alt="" />
+  <div style={{ margin: '' }}>
+    <h1>Atif Afzal</h1>
+    <div>
+      <Link to="/blog">Blog</Link>
+    </div>
   </div>
-))
+));

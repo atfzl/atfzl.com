@@ -4,6 +4,8 @@ import React from 'react';
 import { getRouteProps, Link } from 'react-static';
 import marked from 'marked';
 
+import './index.css';
+
 export default getRouteProps(({ post }) => {
   const body = marked(post.body);
 
@@ -11,7 +13,6 @@ export default getRouteProps(({ post }) => {
     <div>
       <Link to="/blog/">{'<'} Back</Link>
       <br />
-      <h3>{post.title}</h3>
       <article dangerouslySetInnerHTML={{ __html: body }} />
     </div>
   );
