@@ -21,6 +21,10 @@ a {
   text-decoration: none;
 }
 
+pre {
+  font-size: 1.4rem;
+}
+
 .content {
   margin: 0 auto;
   max-width: 72rem;

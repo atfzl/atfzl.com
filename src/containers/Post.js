@@ -4,12 +4,24 @@ import React from 'react';
 import { getRouteProps } from 'react-static';
 import marked from 'marked';
 
-export default getRouteProps(({ post }) => {
-  const body = marked(post.body);
+import * as highlight from 'highlight.js';
+import 'highlight.js/styles/atom-one-light.css';
 
-  return (
-    <div>
-      <article dangerouslySetInnerHTML={{ __html: body }} />
-    </div>
-  );
-});
+class Post extends React.Component {
+  componentDidMount() {
+    highlight.initHighlighting();
+  }
+
+  render() {
+    const { post } = this.props;
+    const body = marked(post.body);
+
+    return (
+      <div>
+        <article dangerouslySetInnerHTML={{ __html: body }} />
+      </div>
+    );
+  }
+}
+
+export default getRouteProps(Post);
