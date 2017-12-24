@@ -19,7 +19,11 @@ export default getRouteProps(({ posts }) => (
     <div>
       {posts.map(post => (
         <div
-          style={{ display: 'flex', justifyContent: 'space-between' }}
+          style={{
+            display: 'flex',
+            justifyContent: 'space-between',
+            marginBottom: '0.7rem',
+          }}
           key={post.fields.id}
         >
           <Link to={`/blog/post/${post.fields.id}/`}>{post.fields.title}</Link>
