@@ -2,7 +2,7 @@
   color: grey;
 }
 
-@media (max-width: 75rem) {
+@media (max-width: 800px) {
   .blog-list-date {
     display: none;
   }

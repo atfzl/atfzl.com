@@ -41,7 +41,7 @@ pre {
   margin-bottom: 4rem;
 }
 
-@media (max-width: 75rem) {
+@media (max-width: 800px) {
   .header {
     display: flex;
     justify-content: space-around;
