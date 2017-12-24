@@ -37,7 +37,15 @@ pre {
   padding-bottom: 2rem;
   padding-left: 3rem;
   background-color: #fff;
-  display: flex;
+  border-bottom: 1px solid grey;
+  margin-bottom: 4rem;
+}
+
+@media (max-width: 75rem) {
+  .header {
+    display: flex;
+    justify-content: space-around;
+  }
 }
 
 .header-link {

@@ -1,0 +1,9 @@
+.blog-list-date {
+  color: grey;
+}
+
+@media (max-width: 75rem) {
+  .blog-list-date {
+    display: none;
+  }
+}

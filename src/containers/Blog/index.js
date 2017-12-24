@@ -1,8 +1,10 @@
 import React from 'react';
 import { getRouteProps, Link, Head } from 'react-static';
 //
-import Heading from '../components/Heading';
-import * as utils from '../utils';
+import Heading from '../../components/Heading';
+import * as utils from '../../utils';
+
+import './index.css';
 
 export default getRouteProps(({ posts }) => (
   <div
@@ -21,7 +23,7 @@ export default getRouteProps(({ posts }) => (
           key={post.fields.id}
         >
           <Link to={`/blog/post/${post.fields.id}/`}>{post.fields.title}</Link>
-          <div style={{ color: 'grey' }}>
+          <div className="blog-list-date" style={{ color: 'grey' }}>
             {utils.formatDate(post.sys.createdAt, { weekday: undefined })}
           </div>
         </div>
