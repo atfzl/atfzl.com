@@ -24,4 +24,18 @@ a {
 .content {
   margin: 0 auto;
   max-width: 72rem;
+  padding-left: 1.5rem;
+  padding-right: 1.5rem;
+}
+
+.header {
+  padding-top: 2rem;
+  padding-bottom: 2rem;
+  padding-left: 3rem;
+  background-color: #fff;
+  display: flex;
+}
+
+.header-link {
+  padding-right: 4rem;
 }

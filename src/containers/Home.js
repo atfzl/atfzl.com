@@ -1,12 +1,13 @@
 import React from 'react';
 import { getSiteProps, Link } from 'react-static';
 //
+import Heading from '../components/Heading';
 
 export default getSiteProps(() => (
-  <div style={{ margin: '' }}>
-    <h1>Atif Afzal</h1>
+  <div style={{ marginTop: '10vh' }}>
+    <Heading>Atif Afzal</Heading>
     <div>
-      <Link to="/blog">Blog</Link>
+      <Link to={'/blog'}>Blog</Link>
     </div>
   </div>
 ));

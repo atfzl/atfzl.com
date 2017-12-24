@@ -10,9 +10,14 @@ import './app.css';
 export default () => (
   <Router>
     <div className="ibm">
-      <nav>
-        <Link to="/">Home</Link>
-      </nav>
+      <div className="header">
+        <Link className="header-link" to="/">
+          Home
+        </Link>
+        <Link className="header-link" to="/blog">
+          Blog
+        </Link>
+      </div>
       <div className="content">
         <Routes />
       </div>
