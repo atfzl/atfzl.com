@@ -39,4 +39,9 @@ export default {
       },
     ];
   },
+  webpack: config => {
+    config.module.rules[0].oneOf[2].query.limit = 1000;
+
+    return config;
+  },
 };
