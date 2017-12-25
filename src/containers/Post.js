@@ -4,14 +4,12 @@ import React from 'react';
 import { getRouteProps, Head } from 'react-static';
 import marked from 'marked';
 
-import * as highlight from 'highlight.js';
-import 'highlight.js/styles/atom-one-light.css';
-
+import hljs from '../highlight';
 import * as utils from '../utils';
 
 const Post = ({ post }) => {
   const body = marked(post.fields.body, {
-    highlight: code => highlight.highlightAuto(code).value,
+    highlight: code => hljs.highlightAuto(code).value,
   });
   const date = utils.formatDate(post.sys.createdAt);
 
