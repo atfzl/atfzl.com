@@ -12,10 +12,7 @@ export default () => (
     <div className="ibm">
       <div className="header">
         <Link className="header-link" to="/">
-          Home
-        </Link>
-        <Link className="header-link" to="/blog">
-          Blog
+          <img className="home-icon" src="/images/home-icon.png" alt="home" />
         </Link>
       </div>
       <div className="content">

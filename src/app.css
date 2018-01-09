@@ -41,6 +41,16 @@ pre {
   margin-bottom: 4rem;
 }
 
+.home-icon {
+  width: 25px;
+  opacity: 0.6;
+  transition: 0.4s opacity;
+}
+
+.home-icon:hover {
+  opacity: 1;
+}
+
 @media (max-width: 800px) {
   .header {
     display: flex;
