@@ -62,3 +62,37 @@ pre {
 .header-link {
   margin-right: 4rem;
 }
+
+h1 {
+  font-size: 3.2rem;
+}
+
+h2 {
+  font-size: 2.56rem;
+}
+
+h3 {
+  font-size: 2.04rem;
+}
+
+h4 {
+  font-size: 1.64rem;
+}
+
+h5 {
+  font-size: 1.312rem;
+}
+
+h6 {
+  font-size: 1.05rem;
+}
+
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+  margin-top: 1em;
+  margin-bottom: 0.5em;
+}

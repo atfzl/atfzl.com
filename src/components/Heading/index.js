@@ -6,7 +6,6 @@ const Heading = props => (
       fontSize: '4.4rem',
       marginBottom: '2rem',
     }}
-    className="ibm-type-semibold"
   >
     {props.children}
   </h1>
