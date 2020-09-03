@@ -24,6 +24,6 @@
   "devDependencies": {
     "eslint-config-react-tools": "1.x.x",
     "prettier": "^1.9.2",
-    "serve": "^10.1.1"
+    "serve": "^10.1.2"
   }
 }
