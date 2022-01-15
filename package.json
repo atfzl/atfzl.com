@@ -14,7 +14,7 @@
   "dependencies": {
     "contentful": "^5.0.5",
     "highlight.js": "^9.12.0",
-    "marked": "^0.3.7",
+    "marked": "^4.0.10",
     "normalize.css": "^7.0.0",
     "react": "^16.0.0",
     "react-dom": "^16.0.0",
