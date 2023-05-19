@@ -1,0 +1,1244 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<rss xmlns:dc="http://purl.org/dc/elements/1.1/" xmlns:content="http://purl.org/rss/1.0/modules/content/" xmlns:atom="http://www.w3.org/2005/Atom" version="2.0">
+<channel>
+  <title><![CDATA[ Atif Afzal]]></title>
+  <link>https://atfzl.com</link>
+  <atom:link href="https://atfzl.com/feed.rss" rel="self" type="application/rss+xml"/>
+  <description><![CDATA[ The feed of updates to Atif Afzal ]]></description>
+  <item> 
+    <title><![CDATA[ JavaScript Event Loop: Much more than you wanted to know ]]></title>
+    <link>https://atfzl.com/javascript-event-loop-much-more-than-you-wanted-to-know</link>
+    <guid>https://atfzl.com/javascript-event-loop-much-more-than-you-wanted-to-know</guid>
+    <pubDate>Wed, 08 Mar 2023 00:00:00 +0000</pubDate>
+    <dc:creator><![CDATA[ JavaScript Event Loop: Much more than you wanted to know ]]></dc:creator>
+    <description><![CDATA[  
+<p><em>Note: We&#x2019;ll cover the event loop in context of browsers and not other runtimes like Node.js</em></p>
+<p>The event loop is a mechanism/algorithm/set of rules that specifies how asynchronous code is handled in JavaScript. This is important because JavaScript is single threaded, it can run one thing at a time. When the main thread is busy, we queue the pending events and these are run later when the main thread is available.</p>
+<p>When we say JavaScript is single threaded, we are talking about the main UI thread where everything related to the UI is run. This includes user interaction handling, rendering, user scripts etc. The browser might be having more threads that it uses internally but our code is run in this main UI thread. There is <a href="https://developer.mozilla.org/en-US/docs/Web/API/Web_Workers_API/Using_web_workers" target="_blank">Web Workers API</a> which can spawn new threads and our code can run in it, but it can&#x2019;t interact with the UI directly.</p>
+<p>Historically, event loop was not part of the JavaScript specification, the host environments were free to implement it without any standard. The event loop standard was first specified in the <a href="https://262.ecma-international.org/6.0/#sec-jobs-and-job-queues" target="_blank">ES6 specification</a>. Before node 11 was released in 2019, the event loop behavior was different in node.js and the browsers. <a href="#footnote-1NHT" class="footnote-ref" id="ref-1NHT" role="doc-noteref"><sup>1</sup></a></p>
+<p>When we try to run any JavaScript code, they might come to the event loop in the form of different type of tasks:</p>
+<ul>
+<li>macro task</li>
+<li>micro task</li>
+<li>requestAnimationFrame task</li>
+<li>nano task (this is only available in node.js, we won&#x2019;t talk about this, we are focused on browsers)</li>
+</ul>
+<h2 id="macro-task">Macro task</h2>
+<p>This is the most common type of task in the event loop. This includes these but is not limited to:</p>
+<ul>
+<li>code running from a script tag</li>
+<li>callback in a timer</li>
+<li>callback run when a network request is finished using <code>XMLHttpRequest</code></li>
+<li>collection of multiple handler callbacks in response to an event</li>
+</ul>
+<h3 id="timer-macro-task">Timer macro task</h3>
+<p>Doing <code>setTimeout(cb, 0)</code> is the most common form of queueing a macro task in the macro task queue.</p>
+<pre><code class="hljs js"><span class="hljs-built_in">setTimeout</span>(<span class="hljs-function">() =&gt;</span> {
+  <span class="hljs-built_in">console</span>.log(<span class="hljs-string">&apos;timeout&apos;</span>);
+}, <span class="hljs-number">0</span>);
+
+<span class="hljs-built_in">console</span>.log(<span class="hljs-string">&apos;script&apos;</span>);</code></pre>
+<p>Firstly, this code itself is running as a macro task. To execute this code in the browser, we have to use a <a href="https://developer.mozilla.org/en-US/docs/Web/HTML/Element/script" target="_blank">script</a> which adds this code as a macro task in the macro task queue. The event loop then picks this up from the macro task queue.</p>
+<p>The <code>setTimeout</code> function is called, the timer is started by the hosting environment. The timer is running in parallel to our main thread, when the timer will expire in the future it adds the callback with <code>console.log(&apos;timeout&apos;)</code> to the macro task queue.</p>
+<p>Now back to the present, while the timer has started running in parallel, the main thread has other code to run like the <code>console.log(&apos;script&apos;)</code>. In JavaScript, a code once started is always <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/EventLoop#run-to-completion" target="_blank">run to completion</a> before anything else can run, i.e.&#xA0;it cannot be interrupted in between for other task. The new task is instead queued in a task queue when it is ready to run on the main thread and runs when its turn comes.</p>
+<p>When a macro task finishes, a task from the macro task queue is picked to run again to completion. If there were multiple macro tasks which were enqueued while the main thread was busy, we&#x2019;ll get the first macro task and others will wait in the queue.</p>
+<p>The pseudocode for the event loop with macro task looks like this:</p>
+<pre><code class="hljs js"><span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-title">eventLoop</span>(<span class="hljs-params"></span>) </span>{
+  <span class="hljs-keyword">const</span> macroTaskQueue = [];
+
+  <span class="hljs-keyword">while</span> (<span class="hljs-literal">true</span>) {
+    <span class="hljs-keyword">const</span> macroTask = macroTaskQueue.shift();
+    runToCompletion(macroTask);
+  }
+}</code></pre>
+<h4 id="quirk-in-using-settimeout-for-queueing-macro-task">Quirk in using setTimeout for queueing macro task</h4>
+<p>A small detour before moving back to event loop. <code>setTimeout</code> has a strange behavior which is even listed in the HTML standard.</p>
+<blockquote>
+<p>Timers can be nested; after five such nested timers, however, the interval is forced to be at least four milliseconds. &#x2013; <a href="https://html.spec.whatwg.org/multipage/timers-and-user-prompts.html#timers" target="_blank">HTML Standard</a></p>
+</blockquote>
+<p>Code snippet creating nested <code>setTimeout</code> calls with depth = 10.</p>
+<pre><code class="hljs js"><span class="hljs-keyword">let</span> depth = <span class="hljs-number">1</span>;
+<span class="hljs-keyword">let</span> previousTime = performance.now();
+<span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-title">recurse</span>(<span class="hljs-params"></span>) </span>{
+  <span class="hljs-keyword">if</span> (depth &gt; <span class="hljs-number">10</span>) {
+    <span class="hljs-keyword">return</span>;
+  }
+  <span class="hljs-keyword">const</span> nowTime = performance.now();
+  <span class="hljs-built_in">console</span>.log({ depth, <span class="hljs-attr">time</span>: nowTime - previousTime });
+  previousTime = nowTime;
+  depth += <span class="hljs-number">1</span>;
+  <span class="hljs-built_in">setTimeout</span>(recurse, <span class="hljs-number">0</span>);
+}
+
+<span class="hljs-built_in">setTimeout</span>(recurse, <span class="hljs-number">0</span>);</code></pre>
+<p>The output of above snippet in Chrome <code>Version 110.0.5481.177 (Official Build) (arm64)</code> is</p>
+<pre><code>{depth: 1, time: 0.7999999970197678}
+{depth: 2, time: 0.4000000059604645}
+{depth: 3, time: 0.09999999403953552}
+{depth: 4, time: 0.10000000149011612}
+{depth: 5, time: 4.700000002980232}
+{depth: 6, time: 4.799999997019768}
+{depth: 7, time: 4.200000002980232}
+{depth: 8, time: 4.799999997019768}
+{depth: 9, time: 4.800000004470348}
+{depth: 10, time: 5.799999997019768}</code></pre>
+<p>After 5 recursive nested calls, <code>setTimeout(cb, 0)</code> takes at least 4ms to put the callback to the macro task queue.</p>
+<p>Because of this, <code>setTimeout</code> is not the most reliable way to queue a macro task to the macro task queue.</p>
+<p>A better way is to use <a href="https://developer.mozilla.org/en-US/docs/Web/API/MessageChannel" target="_blank">MessageChannel</a> to enqueue a macro task. <a href="#footnote-2NHT" class="footnote-ref" id="ref-2NHT" role="doc-noteref"><sup>2</sup></a></p>
+<pre><code class="hljs js"><span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-title">queueMacroTask</span>(<span class="hljs-params">cb</span>) </span>{
+  <span class="hljs-keyword">const</span> mc = <span class="hljs-keyword">new</span> MessageChannel();
+  mc.port1.postMessage (<span class="hljs-literal">null</span>);
+  mc.port2.addEventListener(<span class="hljs-string">&quot;message&quot;</span>, <span class="hljs-function">() =&gt;</span> {
+    cb();
+  }, {<span class="hljs-attr">once</span>: <span class="hljs-literal">true</span>});
+  mc.port2.start();
+}</code></pre>
+<p>Running the same code which we ran before with our <code>queueMacroTask</code>:</p>
+<pre><code class="hljs js"><span class="hljs-keyword">let</span> depth = <span class="hljs-number">1</span>;
+<span class="hljs-keyword">let</span> previousTime = performance.now();
+<span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-title">recurse</span>(<span class="hljs-params"></span>) </span>{
+  <span class="hljs-keyword">if</span> (depth &gt; <span class="hljs-number">10</span>) {
+    <span class="hljs-keyword">return</span>;
+  }
+  <span class="hljs-keyword">const</span> nowTime = performance.now();
+  <span class="hljs-built_in">console</span>.log({ depth, <span class="hljs-attr">time</span>: nowTime - previousTime });
+  previousTime = nowTime;
+  depth += <span class="hljs-number">1</span>;
+  queueMacroTask(recurse);
+}
+
+queueMacroTask(recurse);</code></pre>
+<p>The result is:</p>
+<pre><code>{depth: 1, time: 0.4000000059604645}
+{depth: 2, time: 0.5}
+{depth: 3, time: 0.09999999403953552}
+{depth: 4, time: 0.10000000149011612}
+{depth: 5, time: 0.10000000149011612}
+{depth: 6, time: 0.20000000298023224}
+{depth: 7, time: 0.09999999403953552}
+{depth: 8, time: 0.20000000298023224}
+{depth: 9, time: 0.20000000298023224}
+{depth: 10, time: 0.19999999552965164}</code></pre>
+<p>&#x2028;This is better than <code>setTimeout</code>, it doesn&#x2019;t have the 4ms quirk.</p>
+<p>Now let&#x2019;s go back to the event loop.</p>
+<h3 id="event-listener-macro-task">Event listener macro task</h3>
+<p>This covers the case of having multiple callbacks in a single macro task.</p>
+<pre><code class="hljs html"><span class="hljs-tag">&lt;<span class="hljs-name">div</span> <span class="hljs-attr">id</span>=<span class="hljs-string">&quot;outer&quot;</span>&gt;</span>
+  <span class="hljs-tag">&lt;<span class="hljs-name">div</span> <span class="hljs-attr">id</span>=<span class="hljs-string">&quot;inner&quot;</span>&gt;</span>Click me<span class="hljs-tag">&lt;/<span class="hljs-name">div</span>&gt;</span>
+<span class="hljs-tag">&lt;/<span class="hljs-name">div</span>&gt;</span></code></pre>
+<pre><code class="hljs js"><span class="hljs-keyword">const</span> outer = <span class="hljs-built_in">document</span>.getElementById(<span class="hljs-string">&apos;outer&apos;</span>);
+<span class="hljs-keyword">const</span> inner = <span class="hljs-built_in">document</span>.getElementById(<span class="hljs-string">&apos;inner&apos;</span>);
+
+<span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-title">onClick</span>(<span class="hljs-params"></span>) </span>{
+  <span class="hljs-built_in">console</span>.log(<span class="hljs-string">&quot;click event&quot;</span>, <span class="hljs-built_in">this</span>.id);
+}
+
+inner.addEventListener(<span class="hljs-string">&quot;click&quot;</span>, onClick);
+outer.addEventListener(<span class="hljs-string">&quot;click&quot;</span>, onClick);
+
+<span class="hljs-built_in">console</span>.log(<span class="hljs-string">&apos;script&apos;</span>);</code></pre>
+<p>In this snippet we have two divs - <code>inner</code> div inside the <code>outer</code> div. Clicking on the text <code>Click me</code> enqueues a task which consists of two callbacks one for the <code>inner</code> div click event handler and other for the <code>outer</code> div click event handler because of <a href="https://javascript.info/bubbling-and-capturing#bubbling" target="_blank">event bubbling</a>.</p>
+<p>This is important for future sections - <strong>a single macro task can consist of multiple callbacks</strong>. DOM has provided these multiple callbacks to this single macro task.</p>
+<p>And this was a basic example, doing small DOM manipulation can cause a lot of callbacks to be triggered in production code.</p>
+<p>Now, let&#x2019;s write the new updated event loop pseudocode keeping in mind that a single macro task can consist of multiple callbacks.</p>
+<pre><code class="hljs js"><span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-title">eventLoop</span>(<span class="hljs-params"></span>) </span>{
+  <span class="hljs-keyword">const</span> macroTaskQueue = [];
+
+  <span class="hljs-keyword">while</span> (<span class="hljs-literal">true</span>) {
+    <span class="hljs-keyword">const</span> macroTaskCallbacks = macroTaskQueue.shift();
+    <span class="hljs-keyword">for</span> (<span class="hljs-keyword">let</span> i = <span class="hljs-number">0</span>; i &lt; macrotaskCallbacks.length; ++i) {
+      <span class="hljs-keyword">const</span> macroTaskCallback = macroTaskCallbacks[i];
+      runToCompletion(macroTaskCallback);
+    }
+  }
+}</code></pre>
+<p>There&#x2019;s a special case<a href="#footnote-3NHT" class="footnote-ref" id="ref-3NHT" role="doc-noteref"><sup>3</sup></a> that we should discuss. The snippet is similar to the previous one but here we call <code>click</code> in the program itself instead of clicking it manually by ourselves in real life.</p>
+<pre><code class="hljs js"><span class="hljs-keyword">const</span> outer = <span class="hljs-built_in">document</span>.getElementById(<span class="hljs-string">&apos;outer&apos;</span>);
+<span class="hljs-keyword">const</span> inner = <span class="hljs-built_in">document</span>.getElementById(<span class="hljs-string">&apos;inner&apos;</span>);
+
+<span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-title">onClick</span>(<span class="hljs-params"></span>) </span>{
+  <span class="hljs-built_in">console</span>.log(<span class="hljs-string">&quot;click event&quot;</span>, <span class="hljs-built_in">this</span>.id);
+}
+
+inner.addEventListener(<span class="hljs-string">&quot;click&quot;</span>, onClick);
+outer.addEventListener(<span class="hljs-string">&quot;click&quot;</span>, onClick);
+
+<span class="hljs-built_in">console</span>.log(<span class="hljs-string">&apos;script&apos;</span>);
+
+inner.click();</code></pre>
+<p>When we programmatically call the <code>click</code> function, then there&#x2019;s no new macro task which will be queued to the macro task queue. We&#x2019;ll still be continuing the main <code>script</code> level macro task when running both <code>onClick</code> functions later on.</p>
+<p>It&#x2019;ll be similar to this pseudo code:</p>
+<pre><code>inner.click = (e) =&gt; {
+  onClick.call(inner, e);
+  onClick.call(outer, e);
+};</code></pre>
+<p>which keeps the <code>onClick</code> handlers in the same function call and not create new macro task callbacks.</p>
+<p>Although, this new snippet outputs in the same sequence but will have different behavior when mixed with micro tasks.</p>
+<h2 id="micro-tasks">Micro tasks</h2>
+<p>Micro tasks were created to be used for <a href="https://javascript.info/mutation-observer" target="_blank">Mutation observer</a>.</p>
+<p>JavaScript Promises use micro tasks. The Promise implementation was first done in the user land, there were a lot of libraries implementing Promise before <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Promise" target="_blank">native Promise</a> was available in the browsers. Library authors were in competition to create fast Promise library, so they started using micro tasks for implementing Promise.<a href="#footnote-4NHT" class="footnote-ref" id="ref-4NHT" role="doc-noteref"><sup>4</sup></a></p>
+<p>Micro tasks are run when the current task callback has finished running to completion (the call stack is empty).</p>
+<p>When the micro tasks start running, they exhaust the complete micro task queue. If in between a micro task, new micro tasks are queued then they are run till the micro task queue is empty.</p>
+<pre><code class="hljs js"><span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-title">addMicroTask</span>(<span class="hljs-params"></span>) </span>{
+  <span class="hljs-built_in">Promise</span>.resolve().then(<span class="hljs-function">() =&gt;</span> {
+    addMicroTask();
+  });
+}
+
+addMicroTask();</code></pre>
+<p>The above code will block the main thread because the micro task will keep on increasing and the micro task queue will never end.</p>
+<p>Let&#x2019;s check out a mix of macro task and micro task:</p>
+<pre><code class="hljs js"><span class="hljs-built_in">setTimeout</span>(<span class="hljs-function">() =&gt;</span> {
+  <span class="hljs-built_in">console</span>.log(<span class="hljs-string">&apos;timeout&apos;</span>);
+}, <span class="hljs-number">0</span>);
+
+<span class="hljs-built_in">Promise</span>.resolve().then(<span class="hljs-function">() =&gt;</span> {
+  <span class="hljs-built_in">console</span>.log(<span class="hljs-string">&apos;promise&apos;</span>);
+});
+
+<span class="hljs-built_in">console</span>.log(<span class="hljs-string">&apos;script&apos;</span>);</code></pre>
+<p>The current macro task running is the main script which has the statement <code>console.log(&apos;script&apos;)</code>. When the first statement with <code>setTimeout</code> runs, it starts off the timer, which will add the callback to the macro task queue after 0 ms.</p>
+<p>The <code>Promise.resolve()</code> statement resolves this promise immediately and adds the <code>console.log(&apos;promise&apos;)</code> callback to the micro task queue.</p>
+<p>The statement with <code>console.log(&apos;script&apos;)</code> runs immediately and prints <code>&apos;script&apos;</code>. This ends the current <code>script</code> macro task. We then exhaust the micro task queue which prints <code>&apos;promise&apos;</code>, and then continue the event loop and get the next macro task which prints <code>&apos;timeout&apos;</code>.</p>
+<p>Updated event loop pseudo code:</p>
+<pre><code class="hljs js"><span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-title">eventLoop</span>(<span class="hljs-params"></span>) </span>{
+  <span class="hljs-keyword">const</span> macroTaskQueue = [];
+  <span class="hljs-keyword">const</span> microTaskQueue = [];
+
+  <span class="hljs-keyword">while</span> (<span class="hljs-literal">true</span>) {
+    <span class="hljs-keyword">const</span> macroTaskCallbacks = macroTaskQueue.shift();
+    <span class="hljs-keyword">for</span> (<span class="hljs-keyword">let</span> i = <span class="hljs-number">0</span>; i &lt; macrotaskCallbacks.length; ++i) {
+      <span class="hljs-keyword">const</span> macroTaskCallback = macroTaskCallbacks[i];
+      runToCompletion(macroTaskCallback);
+      <span class="hljs-keyword">while</span> (microTaskQueue.length !== <span class="hljs-number">0</span>) {
+        <span class="hljs-keyword">const</span> microTask = microTaskQueue.shift();
+        runToCompletion(microTask);
+      }
+    }
+  }
+}</code></pre>
+<p>The important thing to note - <strong>the micro task exhaustion starts after each callback of the macro task is finished</strong>. Even if a macro task has multiple callbacks, then the micro task queue exhaustion starts with - when the first callback ends. It won&#x2019;t wait for all the callbacks of the current macro task to finish.</p>
+<p>Refactoring the code by moving micro task exhaustion code to a function:</p>
+<pre><code class="hljs js"><span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-title">eventLoop</span>(<span class="hljs-params"></span>) </span>{
+  <span class="hljs-keyword">const</span> macroTaskQueue = [];
+  <span class="hljs-keyword">const</span> microTaskQueue = [];
+
+  <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-title">exhaustMicroTaskQueue</span>(<span class="hljs-params"></span>) </span>{
+    <span class="hljs-keyword">while</span> (microTaskQueue.length !== <span class="hljs-number">0</span>) {
+      <span class="hljs-keyword">const</span> microTask = microTaskQueue.shift();
+      runToCompletion(microTask);
+    }
+  }
+
+  <span class="hljs-keyword">while</span> (<span class="hljs-literal">true</span>) {
+    <span class="hljs-keyword">const</span> macroTaskCallbacks = macroTaskQueue.shift();
+    <span class="hljs-keyword">for</span> (<span class="hljs-keyword">let</span> i = <span class="hljs-number">0</span>; i &lt; macroTaskCallbacks.length; ++i) {
+      <span class="hljs-keyword">const</span> macroTaskCallback = macroTaskCallbacks[i];
+      runToCompletion(macroTaskCallback);
+      exhaustMicroTaskQueue()
+    }
+  }
+}</code></pre>
+<p>Unlike macro tasks which do not provide a direct way to enqueue a task to the macro task queue, micro tasks have a function <a href="https://developer.mozilla.org/en-US/docs/Web/API/queueMicrotask" target="_blank">queueMicroTask</a> which can be used to directly enqueue a callback to the micro task queue.</p>
+<p>Now, back to the special case that we talked about earlier in macro task section. Let&#x2019;s add a Promise to mix macro and micro tasks:</p>
+<pre><code class="hljs js"><span class="hljs-keyword">const</span> outer = <span class="hljs-built_in">document</span>.getElementById(<span class="hljs-string">&apos;outer&apos;</span>);
+<span class="hljs-keyword">const</span> inner = <span class="hljs-built_in">document</span>.getElementById(<span class="hljs-string">&apos;inner&apos;</span>);
+
+<span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-title">onClick</span>(<span class="hljs-params"></span>) </span>{
+  <span class="hljs-built_in">console</span>.log(<span class="hljs-string">&quot;click event&quot;</span>, <span class="hljs-built_in">this</span>.id);
+  
+  <span class="hljs-built_in">Promise</span>.resolve().then(<span class="hljs-function">() =&gt;</span> {
+    <span class="hljs-built_in">console</span>.log(<span class="hljs-string">&quot;resolved&quot;</span>, <span class="hljs-built_in">this</span>.id);
+  });
+}
+
+inner.addEventListener(<span class="hljs-string">&quot;click&quot;</span>, onClick);
+outer.addEventListener(<span class="hljs-string">&quot;click&quot;</span>, onClick);
+
+<span class="hljs-built_in">console</span>.log(<span class="hljs-string">&apos;script&apos;</span>);
+
+inner.click();</code></pre>
+<p>The result of this code is:</p>
+<pre><code>script
+click event inner
+click event outer
+resolved inner
+resolver outer</code></pre>
+<p>Because there was no new macro task, the script macro task continued and the <code>onClick</code> functions were called on the top of the running stack. Because the original script macro task callback was not finished, the micro task exhaustion does not start and we see the <code>resolved x</code> logs at the end when the original script macro task finishes after both <code>onClick</code> handlers are called.</p>
+<p>Removing <code>inner.click</code> and manually clicking the inner div instead generates this output:</p>
+<pre><code>script
+click event inner
+resolved inner
+click event outer
+resolved outer</code></pre>
+<p>After logging <code>script</code>, the main script macro task ends. The new macro task has 2 callbacks: first for inner <code>onClick</code>, second for outer <code>onClick</code>. Now, at the end of the first callback we exhaust the micro task queue. And then after running the second callback, we exhaust the micro task queue again.</p>
+<h2 id="rendering">Rendering</h2>
+<p>Rendering is a part of the event loop <a href="#footnote-5NHT" class="footnote-ref" id="ref-5NHT" role="doc-noteref"><sup>5</sup></a>. Rendering happens at the end of the current event loop iteration (each event loop iteration is also known as a tick of the event loop). And it happens only when required i.e.&#xA0;when it is time to render a new frame - after an interval of ~16 ms for a 60 hertz display. Although, <strong>the browser might have to skip rendering of some frames if the phases before rendering took a lot of time</strong>.</p>
+<pre><code class="hljs js"><span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-title">eventLoop</span>(<span class="hljs-params"></span>) </span>{
+  <span class="hljs-comment">// ...</span>
+
+  <span class="hljs-keyword">while</span> (<span class="hljs-literal">true</span>) {
+    <span class="hljs-keyword">const</span> macroTaskCallbacks = macroTaskQueue.shift();
+    <span class="hljs-keyword">for</span> (<span class="hljs-keyword">let</span> i = <span class="hljs-number">0</span>; i &lt; macroTaskCallbacks.length; ++i) {
+      <span class="hljs-keyword">const</span> macroTaskCallback = macroTaskCallbacks[i];
+      runToCompletion(macroTaskCallback);
+      exhaustMicroTaskQueue()
+    }
+
+    <span class="hljs-keyword">if</span> (isItTimeForNextFrameRender()) {
+      render();
+    }
+  }
+}</code></pre>
+<p>If we want to run something just before the rendering of a frame happens - we can use <a href="https://developer.mozilla.org/en-US/docs/Web/API/window/requestAnimationFrame" target="_blank">requestAnimationFrame</a>. If we call <code>requestAnimationFrame</code> multiple times before the frame is rendered then all the callbacks passed are enqueued in a queue and these all are run before the frame renders.</p>
+<pre><code class="hljs js"><span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-title">eventLoop</span>(<span class="hljs-params"></span>) </span>{
+  <span class="hljs-comment">// ...</span>
+  <span class="hljs-keyword">const</span> rAFQueue = [];
+  <span class="hljs-keyword">while</span> (<span class="hljs-literal">true</span>) {
+    <span class="hljs-comment">// ...</span>
+    
+    <span class="hljs-keyword">if</span> (isItTimeForNextFrameRender()) {
+      <span class="hljs-keyword">for</span> (<span class="hljs-keyword">let</span> i = <span class="hljs-number">0</span>; i &lt; rAFQueue.length; ++i) {
+        <span class="hljs-keyword">const</span> rAFTask = rAFQueue[i];
+        runToCompletion(rAFTask);
+      }
+
+      render();
+    }
+  }
+}</code></pre>
+<p>The important thing to note is - <strong>the new rAF callbacks queued are not run in this tick</strong> (because we only looped over the current tasks and are not using the new ones). The new ones are queued for the next time when we need to render the next frame.</p>
+<p>Let&#x2019;s take a look at this set of code snippets:</p>
+<pre><code class="hljs html"><span class="hljs-tag">&lt;<span class="hljs-name">div</span> <span class="hljs-attr">id</span>=<span class="hljs-string">&quot;button&quot;</span>&gt;</span>Click me<span class="hljs-tag">&lt;/<span class="hljs-name">div</span>&gt;</span></code></pre>
+<pre><code class="hljs js"><span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-title">onClick</span>(<span class="hljs-params"></span>) </span>{
+  <span class="hljs-built_in">document</span>.body.style.backgroundColor = <span class="hljs-string">&quot;red&quot;</span>;
+  <span class="hljs-built_in">document</span>.body.style.backgroundColor = <span class="hljs-string">&quot;blue&quot;</span>;
+}
+
+<span class="hljs-built_in">document</span>.getElementById(<span class="hljs-string">&apos;button&apos;</span>)
+  .addEventListener(<span class="hljs-string">&apos;click&apos;</span>, onClick);</code></pre>
+<p>After clicking, what will happen? Will we see both red and blue background color in sequence or just the blue background? We can now answer this question using the event loop.</p>
+<p>The current code is running as a macro task via a script tag. Now, on click - a new macro task is pushed which is the onClick function. This onClick function runs to completion and only then we go to the rendering phase. In the end the last value of backgroundColor - blue is used to render the page.</p>
+<p>What if we wanted to first render the page with red color and then with blue in the next frame. Would using a <code>requestAnimationFrame</code> help. Will this work?:</p>
+<pre><code class="hljs js"><span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-title">onClick</span>(<span class="hljs-params"></span>) </span>{
+  <span class="hljs-built_in">document</span>.body.style.backgroundColor = <span class="hljs-string">&quot;red&quot;</span>;
+  requestAnimationFrame(<span class="hljs-function">() =&gt;</span> {
+    <span class="hljs-built_in">document</span>.body.style.backgroundColor = <span class="hljs-string">&quot;blue&quot;</span>;
+  });
+}</code></pre>
+<p>This still won&#x2019;t work because we know that the <code>requestAnimationFrame</code> callbacks are run before rendering. The render phase will get the backgroundColor = blue.</p>
+<p>We can use 2 nested <code>requestAnimationFrame</code> callbacks to solve this. Now just before rendering the second frame we&#x2019;ll set the backgroundColor to blue. Which creates the effect that we want.</p>
+<pre><code class="hljs js"><span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-title">onClick</span>(<span class="hljs-params"></span>) </span>{
+  <span class="hljs-built_in">document</span>.body.style.backgroundColor = <span class="hljs-string">&quot;red&quot;</span>;
+  requestAnimationFrame(<span class="hljs-function">() =&gt;</span> {
+    requestAnimationFrame(<span class="hljs-function">() =&gt;</span> {
+      <span class="hljs-built_in">document</span>.body.style.backgroundColor = <span class="hljs-string">&quot;blue&quot;</span>;
+    });
+  });
+}</code></pre>
+<p>Next important thing is - <strong>micro task can also run between these <code>requestAnimationFrame</code> callbacks for the current frame similar to multiple callbacks in a macro task</strong>.</p>
+<pre><code class="hljs js"><span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-title">eventLoop</span>(<span class="hljs-params"></span>) </span>{
+  <span class="hljs-comment">// ...</span>
+  <span class="hljs-keyword">const</span> rAFQueue = [];
+  <span class="hljs-keyword">while</span> (<span class="hljs-literal">true</span>) {
+    <span class="hljs-comment">// ...</span>
+    
+    <span class="hljs-keyword">if</span> (isItTimeForNextFrameRender()) {
+      <span class="hljs-keyword">for</span> (<span class="hljs-keyword">let</span> i = <span class="hljs-number">0</span>; i &lt; rAFQueue.length; ++i) {
+        <span class="hljs-keyword">const</span> rAFTask = rAFQueue[i];
+        runToCompletion(rAFTask);
+        exhaustMicroTaskQueue();
+      }
+
+      render();
+    }
+  }
+}</code></pre>
+<h2 id="final-event-loop-code">Final event loop code</h2>
+<p>This is the final event loop code which can be used to reason about any code that you see in your JavaScript code in the browser environments.</p>
+<pre><code class="hljs js"><span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-title">eventLoop</span>(<span class="hljs-params"></span>) </span>{
+  <span class="hljs-keyword">const</span> macroTaskQueue = [];
+  <span class="hljs-keyword">const</span> microTaskQueue = [];
+  <span class="hljs-keyword">const</span> rAFQueue = [];
+  
+  <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-title">exhaustMicroTaskQueue</span>(<span class="hljs-params"></span>) </span>{
+    <span class="hljs-keyword">while</span> (microTaskQueue.length !== <span class="hljs-number">0</span>) {
+      <span class="hljs-keyword">const</span> microTask = microTaskQueue.shift();
+      runToCompletion(microTask);
+    }
+  }
+  
+  <span class="hljs-keyword">while</span> (<span class="hljs-literal">true</span>) {
+    <span class="hljs-keyword">const</span> macroTaskCallbacks = macroTaskQueue.shift();
+    <span class="hljs-keyword">for</span> (<span class="hljs-keyword">let</span> i = <span class="hljs-number">0</span>; i &lt; macroTaskCallbacks.length; ++i) {
+      <span class="hljs-keyword">const</span> macroTaskCallback = macroTaskCallbacks[i];
+      runToCompletion(macroTaskCallback);
+      exhaustMicroTaskQueue();
+    }
+
+    <span class="hljs-keyword">if</span> (isItTimeForNextFrameRender()) {
+      <span class="hljs-keyword">for</span> (<span class="hljs-keyword">let</span> i = <span class="hljs-number">0</span>; i &lt; rAFQueue.length; ++i) {
+        <span class="hljs-keyword">const</span> rAFTask = rAFQueue[i];
+        runToCompletion(rAFTask);
+        exhaustMicroTaskQueue();
+      }
+
+      render();
+    }
+  }
+}</code></pre>
+<section class="footnotes" role="doc-endnotes">
+<hr>
+<ol>
+<li id="footnote-1NHT" role="doc-endnote"><p><a href="https://blog.insiderattack.net/new-changes-to-timers-and-microtasks-from-node-v11-0-0-and-above-68d112743eb3" class="uri" target="_blank">https://blog.insiderattack.net/new-changes-to-timers-and-microtasks-from-node-v11-0-0-and-above-68d112743eb3</a><a href="#ref-1NHT" class="footnote-back" role="doc-backlink">&#x21A9;&#xFE0E;</a></p></li>
+<li id="footnote-2NHT" role="doc-endnote"><p><a href="https://youtu.be/8eHInw9_U8k?t=495" class="uri" target="_blank">https://youtu.be/8eHInw9_U8k?t=495</a><a href="#ref-2NHT" class="footnote-back" role="doc-backlink">&#x21A9;&#xFE0E;</a></p></li>
+<li id="footnote-3NHT" role="doc-endnote"><p><a href="https://jakearchibald.com/2015/tasks-microtasks-queues-and-schedules/#level-1-bosss-angry-older-brother" class="uri" target="_blank">https://jakearchibald.com/2015/tasks-microtasks-queues-and-schedules/#level-1-bosss-angry-older-brother</a><a href="#ref-3NHT" class="footnote-back" role="doc-backlink">&#x21A9;&#xFE0E;</a></p></li>
+<li id="footnote-4NHT" role="doc-endnote"><p><a href="https://stackoverflow.com/questions/66190571/what-was-the-motivation-for-introducing-a-separate-microtask-queue-which-the-eve#answer-66386291" class="uri" target="_blank">https://stackoverflow.com/questions/66190571/what-was-the-motivation-for-introducing-a-separate-microtask-queue-which-the-eve#answer-66386291</a><a href="#ref-4NHT" class="footnote-back" role="doc-backlink">&#x21A9;&#xFE0E;</a></p></li>
+<li id="footnote-5NHT" role="doc-endnote"><p><a href="https://html.spec.whatwg.org/multipage/webappapis.html#update-the-rendering" class="uri" target="_blank">https://html.spec.whatwg.org/multipage/webappapis.html#update-the-rendering</a><a href="#ref-5NHT" class="footnote-back" role="doc-backlink">&#x21A9;&#xFE0E;</a></p></li>
+</ol>
+</section>  ]]></description>
+  </item>
+  <item> 
+    <title><![CDATA[ Making Cypress Integration Tests Less Flaky ]]></title>
+    <link>https://atfzl.com/making-cypress-integration-tests-less-flaky</link>
+    <guid>https://atfzl.com/making-cypress-integration-tests-less-flaky</guid>
+    <pubDate>Tue, 01 Feb 2022 11:56:05 +0000</pubDate>
+    <dc:creator><![CDATA[ Making Cypress Integration Tests Less Flaky ]]></dc:creator>
+    <description><![CDATA[  
+<hr>
+<h2 id="tldr">TL;DR</h2>
+<ol type="1">
+<li><p>Interleave <a href="https://www.cypress.io" target="_blank">Cypress</a> commands like <code>.find</code>, <code>.get</code>, <code>.first</code>, <code>.eq</code>, <code>.type</code> with Cypress assertions like <code>.should</code>, <code>.contains</code>.</p>
+<blockquote>
+<p>Cypress runs only the last command when retrying. Interleaving act as guards to ensure we reach to the correct element which also helps avoiding detached parent errors.</p>
+</blockquote></li>
+<li><p>Don&#x2019;t just wait for network calls, wait for the UI to be updated with the network data.</p>
+<blockquote>
+<p>If a network call has finished, it doesn&#x2019;t mean the UI would be updated immediately.</p>
+</blockquote></li>
+</ol>
+<hr>
+<h2 id="example-1">Example 1</h2>
+<p><strong>BAD</strong>:</p>
+<pre><code class="hljs js">cy.get(<span class="hljs-string">&apos;.parent&apos;</span>).find(<span class="hljs-string">&apos;.child&apos;</span>);
+
+<span class="hljs-comment">// If `.parent` got detached and rerendered,</span>
+<span class="hljs-comment">// then the `.find` command would fail, as it</span>
+<span class="hljs-comment">// would try to run `.find` on the now detached parent.</span>
+<span class="hljs-comment">// This could happen in case of a loading `shimmer` component.</span></code></pre>
+<p><strong>GOOD</strong>:</p>
+<pre><code class="hljs js">cy.get(<span class="hljs-string">&apos;.parent .child&apos;</span>);
+
+<span class="hljs-comment">// While `.child` has not rendered, Cypress will</span>
+<span class="hljs-comment">// keep retrying the last command, i.e. the complete</span>
+<span class="hljs-comment">// cy.get command.</span>
+<span class="hljs-comment">// Even if `.parent` got detached, Cypress would</span>
+<span class="hljs-comment">// run the complete command when it is trying to</span>
+<span class="hljs-comment">// find `.child`.</span></code></pre>
+<p>or</p>
+<pre><code class="hljs js">cy.get(<span class="hljs-string">&apos;.parent&apos;</span>)
+  .should(<span class="hljs-string">&apos;have.length&apos;</span>, <span class="hljs-number">3</span>) <span class="hljs-comment">// we made sure that the child has rendered</span>
+  .find(<span class="hljs-string">&apos;.child&apos;</span>);</code></pre>
+<p>or</p>
+<pre><code class="hljs js">cy.get(<span class="hljs-string">&apos;.parent&apos;</span>)
+  .contains(<span class="hljs-string">&apos;some text after which i am sure a child has rendered&apos;</span>)
+  .find(<span class="hljs-string">&apos;.child&apos;</span>)</code></pre>
+<hr>
+<h2 id="example-2">Example 2</h2>
+<p><strong>BAD</strong>:</p>
+<pre><code class="hljs js">cy.get(<span class="hljs-string">&apos;.new-todo&apos;</span>).type(<span class="hljs-string">&apos;todo A{enter}&apos;</span>);
+cy.get(<span class="hljs-string">&apos;.todo-list&apos;</span>)
+  .first()
+  .should(<span class="hljs-string">&apos;contain&apos;</span>, <span class="hljs-string">&apos;todo A&apos;</span>);
+
+cy.get(<span class="hljs-string">&apos;.new-todo&apos;</span>).type(<span class="hljs-string">&apos;todo B{enter}&apos;</span>);
+cy.get(<span class="hljs-string">&apos;.todo-list&apos;</span>) <span class="hljs-comment">// talking about this below</span>
+  .first()
+  .should(<span class="hljs-string">&apos;contain&apos;</span>, <span class="hljs-string">&apos;todo B&apos;</span>);
+
+<span class="hljs-comment">// It might take some time for `todo B` to be visible on UI after</span>
+<span class="hljs-comment">// `.type(&apos;todo B{enter}&apos;) because of async rendering/server calls etc.</span>
+<span class="hljs-comment">// `cy.get(&apos;.todo-list&apos;)` in this case returns the list with only</span>
+<span class="hljs-comment">// `todo A` because `todo B` is still not in UI. And then calling</span>
+<span class="hljs-comment">// `.first()` returns `todo A`.</span>
+<span class="hljs-comment">//</span>
+<span class="hljs-comment">// Cypress retries only the last command which in this case would be</span>
+<span class="hljs-comment">// `.first()` which would still return `todo A`, because</span>
+<span class="hljs-comment">// `cy.get(&apos;.todo-list&apos;)` still returns old list.</span>
+</code></pre>
+<p>or</p>
+<pre><code class="hljs js">cy.get(<span class="hljs-string">&apos;.new-todo&apos;</span>).type(<span class="hljs-string">&apos;todo A{enter}&apos;</span>);
+cy.get(<span class="hljs-string">&apos;.todo-list:first&apos;</span>)
+  .should(<span class="hljs-string">&apos;contain&apos;</span>, <span class="hljs-string">&apos;todo A&apos;</span>);
+
+cy.get(<span class="hljs-string">&apos;.new-todo&apos;</span>).type(<span class="hljs-string">&apos;todo B{enter}&apos;</span>);
+cy.get(<span class="hljs-string">&apos;.todo-list:first&apos;</span>)
+  .should(<span class="hljs-string">&apos;contain&apos;</span>, <span class="hljs-string">&apos;todo B&apos;</span>);
+
+<span class="hljs-comment">// This would retry `cy.get(&apos;.todo-list:first&apos;)` which gets the</span>
+<span class="hljs-comment">// correct UI element after retrying.</span>
+<span class="hljs-comment">// This test is not flaky, but it uses `:first` which is deprecated in</span>
+<span class="hljs-comment">// jquery and will be removed in jquery 4</span></code></pre>
+<p><strong>GOOD</strong>:</p>
+<pre><code class="hljs js">cy.get(<span class="hljs-string">&apos;.new-todo&apos;</span>).type(<span class="hljs-string">&apos;todo A{enter}&apos;</span>);
+cy.get(<span class="hljs-string">&apos;.todo-list&apos;</span>)                        <span class="hljs-comment">// command</span>
+  .should(<span class="hljs-string">&apos;have.length&apos;</span>, <span class="hljs-number">1</span>)                 <span class="hljs-comment">// assertion</span>
+  .first()                                  <span class="hljs-comment">// command</span>
+  .should(<span class="hljs-string">&apos;contain&apos;</span>, <span class="hljs-string">&apos;todo A&apos;</span>);             <span class="hljs-comment">// assertion</span>
+
+cy.get(<span class="hljs-string">&apos;.new-todo&apos;</span>).type(<span class="hljs-string">&apos;todo B{enter}&apos;</span>);
+cy.get(<span class="hljs-string">&apos;.todo-list&apos;</span>)                        <span class="hljs-comment">// command</span>
+  .should(<span class="hljs-string">&apos;have.length&apos;</span>, <span class="hljs-number">2</span>)                 <span class="hljs-comment">// assertion</span>
+  .first()                                  <span class="hljs-comment">// command</span>
+  .should(<span class="hljs-string">&apos;contain&apos;</span>, <span class="hljs-string">&apos;todo B&apos;</span>);             <span class="hljs-comment">// assertion</span>
+
+<span class="hljs-comment">// We have interspersed commands with assertions.</span></code></pre>
+<hr>
+<h2 id="example-3">Example 3</h2>
+<p><strong>BAD</strong>:</p>
+<pre><code class="hljs js">cy.wait(<span class="hljs-string">&apos;@myNetworkCall&apos;</span>);
+
+cy.get(<span class="hljs-string">&apos;.ag-center-cols-viewport&apos;</span>).
+  .find(<span class="hljs-string">&apos;.ag-row&apos;</span>)
+  .first()
+  .click();
+
+<span class="hljs-comment">// The parent `.ag-center-cols-viewport` might get detached before</span>
+<span class="hljs-comment">// finding the child</span></code></pre>
+<p>or</p>
+<pre><code class="hljs js">cy.wait(<span class="hljs-string">&apos;@myNetworkCall&apos;</span>);
+
+cy.get(<span class="hljs-string">&apos;.ag-center-cols-viewport .ag-row:first&apos;</span>)
+  .click();
+
+<span class="hljs-comment">// we might click on the first loading row of the table</span></code></pre>
+<p><strong>GOOD</strong>:</p>
+<pre><code class="hljs js">cy.wait(<span class="hljs-string">&apos;@myNetworkCall&apos;</span>);
+
+cy.get(<span class="hljs-string">&apos;.ag-center-cols-viewpost&apos;</span>)
+  .contains(<span class="hljs-string">&apos;My data from network call now in UI&apos;</span>)
+  .get(<span class="hljs-string">&apos;.ag-row&apos;</span>) <span class="hljs-comment">// now sure we&apos;ll get the correct element because</span>
+  .first()        <span class="hljs-comment">// of the assertion made above</span>
+  .click();
+
+<span class="hljs-comment">// check if UI state is updated in the parent container before querying</span>
+<span class="hljs-comment">// for child element</span></code></pre>
+<hr>
+<h2 id="example-4">Example 4</h2>
+<p><strong>BAD</strong>:</p>
+<pre><code class="hljs js">cy.get(<span class="hljs-string">&apos;.ag-center-cols-viewport&apos;</span>)
+  .find(<span class="hljs-string">&apos;.ag-row&apos;</span>)
+  .first();
+<span class="hljs-comment">// element from `cy.get` or element from `.find` might get detached</span></code></pre>
+<p>or</p>
+<pre><code class="hljs js">cy.get(<span class="hljs-string">&apos;.ag-center-cols-viewport .ag-row&apos;</span>)
+  .first();
+<span class="hljs-comment">// element from `cy.get` might get detached</span></code></pre>
+<p>or</p>
+<pre><code class="hljs js">cy.get(<span class="hljs-string">&apos;.ag-center-cols-viewport .ag-row:first&apos;</span>);
+
+<span class="hljs-comment">// :first is not a valid css selector. It is only supported by jquery, </span>
+<span class="hljs-comment">// but it is deprecated and will be removed in future.</span></code></pre>
+<p><strong>GOOD</strong>:</p>
+<pre><code class="hljs js">cy.get(<span class="hljs-string">&apos;.ag-center-cols-viewport&apos;</span>)
+  .should(<span class="hljs-string">&apos;have.length&apos;</span>, <span class="hljs-number">10</span>) <span class="hljs-comment">// verify that we indeed have multiple rows</span>
+  .first();</code></pre>
+<p>or</p>
+<pre><code class="hljs js">cy.get(<span class="hljs-string">&apos;.ag-center-cols-viewport&apos;</span>)
+  .contains(<span class="hljs-string">&apos;data from network call&apos;</span>) <span class="hljs-comment">// verify data populated</span>
+  .first();</code></pre>
+<h2 id="references">References</h2>
+<ul>
+<li><a href="https://spin.atomicobject.com/2021/07/20/reduce-flakiness-cypress-tests/#:~:text=reduce%20inconsistent%20interactions%20in%20the%20dom" target="_blank">Reduce Inconsistent Interactions in the dom | spin.atomicobject.com</a></li>
+<li><a href="https://www.cypress.io/blog/2020/07/22/do-not-get-too-detached/" target="_blank">Do not get too detached | Cypress Blog</a></li>
+<li><a href="https://docs.cypress.io/guides/core-concepts/retry-ability" target="_blank">Retry Ability | Cypress Blog</a></li>
+</ul>  ]]></description>
+  </item>
+  <item> 
+    <title><![CDATA[ Optimizing Netlify ]]></title>
+    <link>https://atfzl.com/optimizing-netlify</link>
+    <guid>https://atfzl.com/optimizing-netlify</guid>
+    <pubDate>Mon, 06 Sep 2021 18:23:39 +0000</pubDate>
+    <dc:creator><![CDATA[ Optimizing Netlify ]]></dc:creator>
+    <description><![CDATA[  
+<p>We&#x2019;ll optimize Netlify&#x2019;s Single Page web application load time.</p>
+<p>Log in to <a href="https://netlify.com" class="uri" target="_blank">https://netlify.com</a>.</p>
+<p><img src="/images/2c1d9195-c287-4dd0-a8e9-c091a90385a6.png" width="1500" height="954"></p>
+<p>You&#x2019;ll be redirected to <a href="https://app.netlify.com" class="uri" target="_blank">https://app.netlify.com</a> after logging in. This is the SPA we&#x2019;ll be optimizing.</p>
+<p><img src="/images/f137516e-7d80-4b64-ad8a-0c8ca5f81487.png" width="1500" height="954"></p>
+<p>Open Chrome DevTools (cmd + options + i)<br>
+Select <code>Performance</code> Panel<br>
+</p>
+<p>Make sure <code>Screenshot</code> option selected (useful to check when app was loaded)</p>
+<p><img src="/images/a26c050a-8ca5-47c9-9249-f41a56d80dde.png" width="1500" height="954"></p>
+<p>Start recording and refresh the page. Stop the recording when the page has loaded. We have the DevTools open in detached mode to view the timeline.</p>
+<p><img src="/images/111e10b7-ca15-4349-82c1-3baadc933630.png" width="1500" height="954"></p>
+<p>On closer look in the network section, it looks like the network call <code>api.netlify.com/api/v1/user</code> is duplicated. <code>api.segment.io/v1/p</code> is also duplicated but that doesn&#x2019;t look much interesting.</p>
+<p><img src="/images/0fca616a-5007-4cc2-968f-ca58346745e2.png" width="635" height="376"></p>
+<p>We go to the Network panel of DevTools to check the details about this <code>user</code> api.</p>
+<p><img src="/images/122b4e82-2097-4ad0-b0de-0538e5e8dda5.png" width="792" height="629"></p>
+<p>Now we check the call stack for both these calls.</p>
+<p><img src="/images/a820bc29-ef17-4d96-b9a5-23e336ded248.png" width="931" height="987"></p>
+<p><img src="/images/c125f121-5b54-4ed7-8202-629f6961214e.png" width="931" height="987"></p>
+<p>Both call stack look pretty similar with one difference.</p>
+<pre><code class="hljs diff"><span class="hljs-deletion">- App.js:432</span>
+<span class="hljs-addition">+ App.js:459</span></code></pre>
+<p>Different lines in the same file:</p>
+<p><img src="/images/fd1e6d5c-707c-4ac9-89bd-b048bb661d72.png" width="1500" height="954"></p>
+<p>We&#x2019;re lucky Netlify has source-maps enabled in public, otherwise we&#x2019;d see minified code.</p>
+<p>The first <code>useEffect</code> is meant to run when the app loads for first time, at this time <code>userId</code> is not defined.</p>
+<p>The second <code>useEffect</code> is running again when <code>userId</code> is not defined. It should be:</p>
+<pre><code class="hljs js">useEffect(<span class="hljs-function">() =&gt;</span> {
+  <span class="hljs-keyword">if</span> (userId) {
+    load(props);
+  }
+}, [userId]);</code></pre>
+<p><strong>This will fix the api call being made twice.</strong></p>
+<p>Now back to the timeline, I see an opportunity for improving the app load time.</p>
+<p><img src="/images/28530f9b-596c-4427-9d11-dc49935aca89.png" width="1500" height="954"></p>
+<p>Looks like the main thread is not doing much while the network calls are being made. The current process is in series: the JavaScript runs and this code makes some network calls. We can do these in parallel because the network calls are handled by browser in a separate thread.</p>
+<p>To do this we&#x2019;d normally need the source to build the code but we&#x2019;ll be using <a href="https://developer.chrome.com/blog/new-in-devtools-65/#overrides" target="_blank">Chrome Local Overrides</a>.</p>
+<p>I have the main html file <code>overview</code> and main js file <code>app.bundle.js</code> overridden with my local copy.</p>
+<p><img src="/images/0092f1ed-6ae0-4bc5-907d-a59ef751323c.png" width="416" height="359"></p>
+<p>I found a place where I&#x2019;ll short-circuit the api call for <code>user</code>:</p>
+<p><img src="/images/db8f5341-1c43-44a5-9151-fa8569db82ce.png" width="632" height="377"></p>
+<p>Updating this to</p>
+<pre><code class="hljs js">  <span class="hljs-function"><span class="hljs-title">user</span>(<span class="hljs-params"></span>)</span> {
+    <span class="hljs-keyword">return</span> <span class="hljs-built_in">window</span>.userPromise || <span class="hljs-built_in">this</span>.request(<span class="hljs-string">&apos;/user&apos;</span>);
+  }</code></pre>
+<p>Now we&#x2019;ll define <code>window.userPromise</code> in the main HTML file because we want this api call made ASAP. We&#x2019;ll add a new <code>&lt;script&gt;</code> tag and add our <code>/user</code> api call with the correct access token from the local storage.</p>
+<p><img src="/images/32f3318a-6d9e-4b23-a7a6-4aaab08cf674.png" width="1500" height="954"></p>
+<p>And it works, we now have an api call at the start of page, in parallel as the main JavaScript code runs.</p>
+<p><img src="/images/4ebb7afe-64c5-4490-a991-a15fa732452c.png" width="583" height="581"></p>
+<p>But there are 2 more network calls which are blocking the app render, let&#x2019;s optimize them in the same way.</p>
+<p><img src="/images/61866cba-07bf-4bbc-aa03-4545934d1cf1.png" width="816" height="52"></p>
+<p>We now have a busy main thread, networks calls and JavaScript code are being run in parallel.</p>
+<p><img src="/images/891b1b3b-683c-4e4a-817a-75e2932a80e2.png" width="678" height="781"></p>
+<p>For my system and network, I could see around <strong>40% reduction in app load time from 2000ms to 1200ms</strong>.</p>
+<p>This is a common scenario in SPA using bundling systems like Webpack, API calls are made after the code is run. Early API calls is a simple method to improve app load time for a lot of web apps.</p>  ]]></description>
+  </item>
+  <item> 
+    <title><![CDATA[ Don’t attach tooltips to document.body ]]></title>
+    <link>https://atfzl.com/don-t-attach-tooltips-to-document-body</link>
+    <guid>https://atfzl.com/don-t-attach-tooltips-to-document-body</guid>
+    <pubDate>Wed, 10 Mar 2021 00:00:00 +0000</pubDate>
+    <dc:creator><![CDATA[ Don’t attach tooltips to document.body ]]></dc:creator>
+    <description><![CDATA[  
+<h2 id="tldr">TL;DR</h2>
+<p>Instead of attaching tooltips directly to <code>document.body</code>, attach them to a predefined div in <code>document.body</code>.</p>
+<p><strong>BAD</strong></p>
+<pre><code class="hljs html"><span class="hljs-tag">&lt;<span class="hljs-name">body</span>&gt;</span>
+    <span class="hljs-comment">&lt;!-- temporary div, vanishes when tooltips vanishes --&gt;</span>
+    <span class="hljs-tag">&lt;<span class="hljs-name">div</span>&gt;</span>my tooltip<span class="hljs-tag">&lt;/<span class="hljs-name">div</span>&gt;</span>
+<span class="hljs-tag">&lt;<span class="hljs-name">body</span>&gt;</span></code></pre>
+<p><strong>GOOD</strong></p>
+<pre><code class="hljs html"><span class="hljs-tag">&lt;<span class="hljs-name">body</span>&gt;</span>
+    <span class="hljs-comment">&lt;!-- this div stays forever, just for attaching tooltips --&gt;</span>
+    <span class="hljs-tag">&lt;<span class="hljs-name">div</span> <span class="hljs-attr">id</span>=<span class="hljs-string">&quot;tooltips-container&quot;</span>&gt;</span>
+        <span class="hljs-comment">&lt;!-- temporary div, vanishes when tooltips vanishes --&gt;</span>
+        <span class="hljs-tag">&lt;<span class="hljs-name">div</span>&gt;</span>my tooltip<span class="hljs-tag">&lt;/<span class="hljs-name">div</span>&gt;</span>
+    <span class="hljs-tag">&lt;/<span class="hljs-name">div</span>&gt;</span>
+<span class="hljs-tag">&lt;<span class="hljs-name">body</span>&gt;</span></code></pre>
+<h2 id="introduction">Introduction</h2>
+<p>Tooltips in our app were taking <code>&gt;80ms</code>. And during this time, the main thread was blocked, you couldn&#x2019;t interact with anything.</p>
+<p>Other components like modal, popover, dropdown had similar performance issues. In some cases, a modal took more than 1 second to appear while making the UI unresponsive.</p>
+<p><img src="/images/42567303-439e-4b20-84dc-0acd2179691e.png" alt="Tooltip performance timeline" width="1350" height="1252"></p>
+<p>The main reason for the slowness of Tooltip was <code>Recalculate Style</code> being called at the end of mouseover event call stack which takes a lot of time.</p>
+<p><img src="/images/d9a0f2a4-c38d-4aef-a378-149095172e02.png" alt="Call Stack Recalculate Style" width="722" height="300"></p>
+<p>I noticed the tooltip performance was inversely proportional to number of DOM nodes currently in document.</p>
+<p><img src="/images/cd5638e6-8875-4b3a-9792-16487dcb001b.png" alt="Performance DOM Nodes graph" width="422" height="244"></p>
+<p>This investigation started off with trying to use the css property <code>contain</code> to signal the browser about the containment of a particular DOM Node so that the <code>Recalculate Style</code> will not affect all the nodes. But applying the property on the element where we hover didn&#x2019;t help as the tooltips were being rendered outside of the element, directly as a child of the <code>body</code> of the page.</p>
+<p>Next step was to try rendering the tooltip into a separate container and not directly in the body. Then we&#x2019;ll set the <code>contain</code> css property to signal the browser to not do the expensive <code>Recalculate Style</code>.</p>
+<p>To my amazement, just having a separate container without even adding the css <code>contain</code> property fixed the performance. The main problem now, was to explain it. First I thought this might be some internal browser heuristic optimizing the <code>Recalculate Style</code>, but there is no black magic and I discovered the reason.</p>
+<p>Before diving deep into the investigation, we&#x2019;ll talk about some prerequisites.</p>
+<h2 id="how-browser-works-at-page-load">How browser works at page load</h2>
+<p>The browser creates a DOM tree from the HTML string.</p>
+<p><img src="/images/a4dd83f7-1c48-4436-96c1-28fad953701d.png" alt="Dom Tree from HTML String" width="512" height="244"></p>
+<p>You can see it as <code>Parse HTML</code> in the performance timeline in Chrome DevTools.</p>
+<p><img src="/images/0b42e521-5df8-4d57-b119-144d6018e3a2.png" alt="Parse HTML in Performance Timeline" width="512" height="99"></p>
+<p>Then the CSS is parsed and browser creates the CSSOM (CSS Object Model).</p>
+<p><img src="/images/c143d55c-fe22-4528-a9af-79d83c0b3fe1.jpg" alt="CSS Object Model" width="512" height="280"></p>
+<p>Then the browser combines the DOM and CSSOM to create the <code>render tree</code>.</p>
+<p><img src="/images/4909edcc-87b1-41c1-b5a4-00e87b1c9f8b.png" alt="Render Tree" width="512" height="157"></p>
+<p>Render tree consists of elements currently visible on the page. Elements with property like <code>display: none</code> are not part of the <code>render tree</code>. If we have a pseudo element in CSS like <code>after</code>, then it is part of the <code>render tree</code> although it is not a part of the DOM. The creation/modification of the render tree is called <code>Recalculate Style</code> in the performance timeline.</p>
+<p><img src="/images/3606e18e-5417-417f-b564-bb34f04c4407.png" alt="Recalculate Style in Performance Timeline" width="512" height="53"></p>
+<blockquote>
+<p>Important: render tree is invalidated when we modify DOM or change styles of any element.</p>
+</blockquote>
+<p>Next step is <code>layout</code>. Layout is calculating the size and positions of elements of the render tree, to know where we have to draw exactly. This is referred to as <code>Layout</code> in the performance timeline.</p>
+<p><img src="/images/d3ddd1c8-5f55-47c6-827f-ce0dc234c312.png" alt="Layout in Performance Timeline" width="512" height="27"></p>
+<p><code>Layout</code> may need to be done again whenever there is a change in size/position of an element which affects the position of all the elements in the page. <code>Layout</code> is also known as <code>Reflow</code>.</p>
+<p>Next steps are <code>paint</code> and <del>composting</del> <code>composite</code> but we won&#x2019;t talk about them here as they are not important for explanation of this topic.</p>
+<h2 id="how-browser-handles-rendering-during-runtime">How browser handles rendering during runtime</h2>
+<p><img src="/images/cfbe79de-9352-4f32-a8af-f839a1784eef.jpg" alt="Rendering during Runtime" width="512" height="78"></p>
+<p>To render a frame in a browser, we go in this order: JavaScript runs, then there are style calculation, then layout. Ignore Paint and Composite for now.</p>
+<p>When we access any layout property like <code>offsetWidth</code>, <code>offsetParent</code>, <code>width</code> etc, the browser returns the value from previously calculated layout calculations, which is not expensive as the calculation was done earlier in the previous frame and now we are just reading it.</p>
+<p>But what happens when we change a style on an element or modify the DOM? Then the browser has its own heuristics and is smart enough to know if the browser needs to <code>Recalculate Style</code>/<code>Layout</code> in the current frame or defer it for later.</p>
+<p>You can see it as <code>Schedule Style Recalculation</code> in timeline.</p>
+<p><img src="/images/576e35de-1548-4fa9-bc6b-1bc0414a0f3f.png" alt="Schedule Style Recalculation in Timeline" width="396" height="54"></p>
+<p>The problem happens when we try to access a layout property just after we change style/modify DOM. Then the browser has to force <code>Recalculate Style</code>/<code>Layout</code> because browser has to return the current value, it cannot give you a stale value from the previous frame. This causes the problem known as <code>Layout Thrashing</code>.</p>
+<p>Example:<br>
+<strong>BAD</strong></p>
+<p><img src="/images/aae26576-396d-46cf-9265-be3f12ebb40b.png" alt="Bad Style Change" width="512" height="264"></p>
+<p>Here we are first changing the style and then immediately reading <code>offsetHeight</code> property which causes a <code>Synchronous Forced Layout</code>.</p>
+<p>You&#x2019;ll see this warning in browser when this happens:</p>
+<p><img src="/images/911239f1-6cc4-4ef2-a40d-66d011330b4f.png" alt="Forced Reflow Warning" width="512" height="38"></p>
+<p><strong>GOOD</strong></p>
+<p><img src="/images/aca72dbb-333e-4d2f-8e3b-2da94edae8f2.png" alt="Good Style Change" width="512" height="230"></p>
+<p>This is fine because we are first reading the layout property <code>offsetHeight</code> which is not expensive as we are just reading the value from the previous frame&#x2019;s layout calculation. Then we change the style later which is ok, the layout might still happen but it is up to browser when to do it, it is not forced.</p>
+<h2 id="investigation">Investigation</h2>
+<p><img src="/images/79ed6c15-e9b3-4929-a75e-3d74dba53232.png" alt="Recalculate Style summary" width="512" height="396"></p>
+<p>Here we can see a lot of elements (807) are affected by the <code>Recalculate Style</code> event which is the reason this event takes a lot of time.</p>
+<p>The <code>Call Stacks</code> detail gives us important information to debug this issue. The field <code>Recalculation Forced</code> shows the value <code>getOffsetParent @ popper.js:188</code> which is this code in <code>popper.js@1.15.0</code>:</p>
+<pre><code class="hljs js"><span class="hljs-keyword">var</span> offsetPArent = element.offsetParent;</code></pre>
+<p>The next field is <code>First Invalidation</code> with value <code>Tooltip._this.handleEnter @ Tooltip.js:165</code> in <code>@material-ui/core@3.9.3</code></p>
+<pre><code class="hljs js">_this.childrenRef.setAttribute(<span class="hljs-string">&apos;title&apos;</span>, <span class="hljs-string">&apos;&apos;</span>);</code></pre>
+<p>The <code>First Invalidation</code> shows where in code, the render tree was first invalidated which later caused <code>Forced Reflow</code> because of <code>Recalculation Forced</code> code.</p>
+<p>Doing <code>setAttribute</code> on an element in DOM is invalidating the render tree, and then accessing the <code>offsetParent</code> causes a <code>Forced Synchronous Layout</code>.</p>
+<p>Had this been done in the opposite direction it wouldn&#x2019;t be a problem.</p>
+<p>I tried commenting the setAttribute code and again ran the performance timeline. But the issue was still there but the invalidation was happening somewhere else.</p>
+<p><img src="/images/054069df-d88a-417e-a652-c8d729894adf.png" alt="First Invalidated" width="512" height="300"></p>
+<p>The invalidation is now happening when the tooltip is added to the body, which invalidates the render tree.</p>
+<p>Popper accessing the <code>offsetParent</code> property after attaching the tooltip to the body is causing <code>Forced Reflow</code>. If this property access was done before attaching the tooltip to body, the reflow would not have happened.</p>
+<p>But all this is not in our control as the code is in the third party library <code>popper.js</code>.</p>
+<p>Now, what can we do?</p>
+<p>Next, I created a separate container in the body where the tooltip would always be attached.</p>
+<pre><code class="hljs html"><span class="hljs-tag">&lt;<span class="hljs-name">body</span>&gt;</span>
+    <span class="hljs-tag">&lt;<span class="hljs-name">div</span> <span class="hljs-attr">id</span>=<span class="hljs-string">&quot;tooltips-container&quot;</span>&gt;</span><span class="hljs-tag">&lt;/<span class="hljs-name">div</span>&gt;</span>
+    <span class="hljs-tag">&lt;<span class="hljs-name">div</span> <span class="hljs-attr">id</span>=<span class="hljs-string">&quot;myapp&quot;</span>&gt;</span>...<span class="hljs-tag">&lt;/<span class="hljs-name">div</span>&gt;</span>
+<span class="hljs-tag">&lt;/<span class="hljs-name">body</span>&gt;</span></code></pre>
+<p>And instructed the popper to be rendered in this container.</p>
+<pre><code class="hljs js"><span class="hljs-keyword">const</span> popperProps = {
+    <span class="hljs-attr">container</span>: <span class="hljs-function">() =&gt;</span> <span class="hljs-built_in">document</span>.getElementById(<span class="hljs-string">&apos;tooltips-container&apos;</span>),
+};</code></pre>
+<p>Now, the performance was greatly improved, the <code>Recalculate Style</code> still happened but its cost was less than before. 0.79ms down from 66.57ms:</p>
+<p><img src="/images/2814d1be-d234-4224-8999-24d32e64605e.png" alt="Low Recalculate Style" width="512" height="269"></p>
+<p>What happened here? The tooltip was attached to the tooltip container and not to the body. This invalidated a much smaller subtree, which was the tooltip container. The tooltip container is not visible in the page, so modifying it doesn&#x2019;t invalidate the complete page render tree. If the tooltip container would have been visible in the page, then the complete render tree would be invalidated but in this case only an independent subtree was invalidated. <code>Recalculating Style</code> for a small subtree of 3 doesn&#x2019;t take a lot of time and hence is faster.</p>
+<p>The <code>Element Affected</code> is 3 which is the number of nodes inside our tooltip container.</p>
+<pre><code class="hljs html"><span class="hljs-tag">&lt;<span class="hljs-name">div</span> <span class="hljs-attr">id</span>=<span class="hljs-string">&quot;tooltips-container&quot;</span>&gt;</span>
+    <span class="hljs-tag">&lt;<span class="hljs-name">div</span> <span class="hljs-attr">role</span>=<span class="hljs-string">&quot;tooltip&quot;</span> <span class="hljs-attr">...</span>&gt;</span>
+        <span class="hljs-tag">&lt;<span class="hljs-name">div</span> <span class="hljs-attr">class</span>=<span class="hljs-string">&quot;MuiTooltip-tooltip-66 ...&quot;</span> <span class="hljs-attr">...</span>&gt;</span>
+            <span class="hljs-tag">&lt;<span class="hljs-name">span</span> <span class="hljs-attr">class</span>=<span class="hljs-string">&quot;tooltipContent__..&quot;</span>&gt;</span>
+                Tooltip Text
+            <span class="hljs-tag">&lt;/<span class="hljs-name">span</span>&gt;</span>
+        <span class="hljs-tag">&lt;/<span class="hljs-name">div</span>&gt;</span>
+    <span class="hljs-tag">&lt;/<span class="hljs-name">div</span>&gt;</span>
+<span class="hljs-tag">&lt;/<span class="hljs-name">div</span>&gt;</span></code></pre>
+<p>The ideal case would be to not access the <code>offsetParent</code> property in DOM after attaching it, but it is needed for <code>popper.js</code> to calculate where to render the tooltip.</p>
+<p>Popper.js first attaches the tooltip to the body and then moves it to the correct position. If popper.js calculated the position first and then attached the tooltip to the body later, then we wouldn&#x2019;t have this problem of <code>Recalculate Style</code>. We are using an older version of <code>@material-ui/core@3.9.3</code> which is using an old version of <code>popper.js@1.15.0</code>.</p>
+<h2 id="result">Result</h2>
+<p>The mouseover event in our tooltip finishes much quickly and does not cause jank in the experience.<br>
+<strong>8ms from 80ms</strong><br>
+Tooltips are now <strong>10x faster</strong>.</p>
+<p><img src="/images/1e35b3bb-c083-4da7-9c2c-8797bab83e12.png" alt="Final Result" width="512" height="369"></p>
+<h2 id="references">References</h2>
+<ul>
+<li><a href="https://www.udacity.com/course/website-performance-optimization--ud884" target="_blank">Website Performance Optimization - Udacity</a> (App load optimization)</li>
+<li><a href="https://www.udacity.com/course/browser-rendering-optimization--ud860" target="_blank">Browser Rendering Optimization - Udacity</a> (App runtime optimization)</li>
+<li><a href="https://developers.google.com/web/fundamentals/performance/rendering/avoid-large-complex-layouts-and-layout-thrashing?utm_source=devtools#avoid_forced_synchronous_layouts" target="_blank">Avoid forced synchronous layouts - Web Fundamentals Google</a></li>
+<li><a href="https://gist.github.com/paulirish/5d52fb081b3570c81e3a" target="_blank">What DOM element property access forces layout / reflow</a></li>
+<li><a href="https://developers.google.com/web/updates/2016/06/css-containment" target="_blank">CSS Containment in Chrome 52</a></li>
+<li><a href="https://www.youtube.com/watch?v=iqcO-5_KkJ4" target="_blank">Improving Website Performance with CSS Containment by Manuel Rego | CSSconf EU 2019 Youtube</a></li>
+<li><a href="https://people.igalia.com/mrego/talks/cssconf-eu-2019-css-containment/" target="_blank">Improving website performance with css containment - Slides</a></li>
+</ul>
+<h2 id="discussions">Discussions</h2>
+<ul>
+<li><a href="https://www.reddit.com/r/javascript/comments/p1xwz0/dont_attach_tooltips_to_documentbody/" target="_blank">Reddit</a></li>
+<li><a href="https://news.ycombinator.com/item?id=28230977" target="_blank">Hacker News</a></li>
+</ul>  ]]></description>
+  </item>
+  <item> 
+    <title><![CDATA[ Understanding Solid: JSX ]]></title>
+    <link>https://atfzl.com/understanding-solid-jsx</link>
+    <guid>https://atfzl.com/understanding-solid-jsx</guid>
+    <pubDate>Mon, 25 Nov 2019 20:28:56 +0000</pubDate>
+    <dc:creator><![CDATA[ Understanding Solid: JSX ]]></dc:creator>
+    <description><![CDATA[  
+<p><a href="https://github.com/ryansolid/solid" target="_blank">Solid</a> uses <a href="https://facebook.github.io/jsx/" target="_blank">JSX</a> to render vanilla DOM elements. In React the <code>&lt;div /&gt;</code> compiles to <code>React.createElement(&apos;div&apos;)</code> but in Solid you could say it compiles to <code>document.createElement(&apos;div&apos;)</code> (actually it uses HTML templates, more on this ahead).</p>
+<h2 id="hello-world-component">Hello World component:</h2>
+<pre><code class="hljs js"><span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-title">HelloWorld</span>(<span class="hljs-params"></span>) </span>{
+  <span class="hljs-keyword">return</span> (
+    <span class="xml"><span class="hljs-tag">&lt;<span class="hljs-name">div</span>&gt;</span>
+      Hello World
+    <span class="hljs-tag">&lt;/<span class="hljs-name">div</span>&gt;</span></span>
+  );
+}</code></pre>
+<p>This will (conceptually) compile to:</p>
+<pre><code class="hljs js"><span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-title">HelloWorld</span>(<span class="hljs-params"></span>) </span>{
+  <span class="hljs-keyword">const</span> el$ = <span class="hljs-built_in">document</span>.createElement(<span class="hljs-string">&apos;div&apos;</span>);
+  
+  el$.innerText = <span class="hljs-string">&apos;Hello World&apos;</span>;
+  
+  <span class="hljs-keyword">return</span> el$;
+}</code></pre>
+<p>Actually solid uses <a href="https://developer.mozilla.org/en-US/docs/Web/HTML/Element/template" target="_blank">HTML template element</a> because it is more performant for creating new instances from same template.</p>
+<p>So it actually compiles to this:</p>
+<pre><code class="hljs js"><span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-title">_$template</span>(<span class="hljs-params">str</span>) </span>{
+  <span class="hljs-keyword">const</span> t = <span class="hljs-built_in">document</span>.createElement(<span class="hljs-string">&apos;template&apos;</span>);
+  t.innerHTML = str;
+  <span class="hljs-keyword">return</span> t.content.firstChild;
+}
+
+<span class="hljs-keyword">const</span> _tmpl$ = _$template(<span class="hljs-string">`&lt;div&gt;Hello World&lt;/div&gt;`</span>);
+
+<span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-title">HelloWorld</span>(<span class="hljs-params"></span>) </span>{
+  <span class="hljs-keyword">return</span> _tmpl$.cloneNode(<span class="hljs-literal">true</span>);
+}</code></pre>
+<p>From the previous <a href="https://www.atfzl.com/understanding-solid-reactivity-basics" target="_blank">post</a> we know how solid is tracking dependencies. We&#x2019;ll use it here now by creating a counter.</p>
+<pre><code class="hljs js"><span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-title">Counter</span>(<span class="hljs-params"></span>) </span>{
+  <span class="hljs-keyword">const</span> [state, setState] = createState({ <span class="hljs-attr">counter</span>: <span class="hljs-number">0</span> });
+  
+  <span class="hljs-built_in">setInterval</span>(<span class="hljs-function">() =&gt;</span> {
+    setState({ <span class="hljs-attr">counter</span>: state.counter + <span class="hljs-number">1</span> });
+  });
+  
+  <span class="hljs-keyword">return</span> (
+    <span class="xml"><span class="hljs-tag">&lt;<span class="hljs-name">div</span>&gt;</span>
+      {state.counter}
+    <span class="hljs-tag">&lt;/<span class="hljs-name">div</span>&gt;</span></span>
+  );
+}</code></pre>
+<p>This will compile to:</p>
+<pre><code class="hljs js"><span class="hljs-keyword">const</span> _tmpl$ = _$template(<span class="hljs-string">`&lt;div&gt;&lt;/div&gt;`</span>);
+
+<span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-title">Counter</span>(<span class="hljs-params"></span>) </span>{
+  <span class="hljs-keyword">const</span> [state, setState] = createState({
+    <span class="hljs-attr">counter</span>: <span class="hljs-number">0</span>
+  });
+  <span class="hljs-built_in">setInterval</span>(<span class="hljs-function">() =&gt;</span> {
+    setState({
+      <span class="hljs-attr">counter</span>: state.counter + <span class="hljs-number">1</span>
+    });
+  });
+  <span class="hljs-keyword">return</span> <span class="hljs-function"><span class="hljs-keyword">function</span> (<span class="hljs-params"></span>) </span>{
+    <span class="hljs-keyword">const</span> _el$ = _tmpl$.cloneNode(<span class="hljs-literal">true</span>);
+
+    createEffect(<span class="hljs-function">() =&gt;</span> {
+      _el$.innerText = state.counter;
+    });
+
+    <span class="hljs-keyword">return</span> _el$;
+  }(); <span class="hljs-comment">// <span class="hljs-doctag">NOTE:</span> this is an iife!</span>
+}</code></pre>
+<p>Note that the string passed to <code>_$template</code> does not have the part where we had the dynamic value <code>{state.counter}</code>. It will be added later in <code>createEffect</code>.</p>
+<p>Now whenever we update the counter, the createEffect block runs which updates the innerText of <code>_el$</code>.</p>
+<h2 id="jsx-with-nesting">JSX with nesting:</h2>
+<pre><code class="hljs js"><span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-title">Counter</span>(<span class="hljs-params"></span>) </span>{
+  <span class="hljs-keyword">const</span> [state, setState] = createState({ <span class="hljs-attr">counter</span>: <span class="hljs-number">0</span> });
+  
+  <span class="hljs-built_in">setInterval</span>(<span class="hljs-function">() =&gt;</span> {
+    setState({ <span class="hljs-attr">counter</span>: state.counter + <span class="hljs-number">1</span> });
+  });
+  
+  <span class="hljs-keyword">return</span> (
+    <span class="xml"><span class="hljs-tag">&lt;<span class="hljs-name">div</span>&gt;</span>
+      <span class="hljs-tag">&lt;<span class="hljs-name">div</span>&gt;</span>Counter:<span class="hljs-tag">&lt;/<span class="hljs-name">div</span>&gt;</span>
+      <span class="hljs-tag">&lt;<span class="hljs-name">div</span>&gt;</span>{state.counter}<span class="hljs-tag">&lt;/<span class="hljs-name">div</span>&gt;</span>
+    <span class="hljs-tag">&lt;/<span class="hljs-name">div</span>&gt;</span></span>
+  );
+}</code></pre>
+<p>Compiles to:</p>
+<pre><code class="hljs js"><span class="hljs-keyword">const</span> _tmpl$ = _$template(<span class="hljs-string">`&lt;div&gt;&lt;div&gt;Counter:&lt;/div&gt;&lt;div&gt;&lt;/div&gt;&lt;/div&gt;`</span>);
+
+<span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-title">Counter</span>(<span class="hljs-params"></span>) </span>{
+  <span class="hljs-keyword">const</span> [state, setState] = createState({
+    <span class="hljs-attr">counter</span>: <span class="hljs-number">0</span>
+  });
+  <span class="hljs-built_in">setInterval</span>(<span class="hljs-function">() =&gt;</span> {
+    setState({
+      <span class="hljs-attr">counter</span>: state.counter + <span class="hljs-number">1</span>
+    });
+  });
+  <span class="hljs-keyword">return</span> <span class="hljs-function"><span class="hljs-keyword">function</span> (<span class="hljs-params"></span>) </span>{
+    <span class="hljs-keyword">const</span> _el$ = _tmpl$.cloneNode(<span class="hljs-literal">true</span>),
+          _el$<span class="hljs-number">2</span> = _el$.firstChild,
+          _el$<span class="hljs-number">3</span> = _el$<span class="hljs-number">2.</span>nextSibling;
+
+    createEffect(<span class="hljs-function">() =&gt;</span> {
+      _el$<span class="hljs-number">3.</span>innerText = state.counter;
+    });
+
+    <span class="hljs-keyword">return</span> _el$;
+  }();
+}</code></pre>
+<p>Note that the static part string: <code>Counter:</code> is left inside the template string passed to <code>_$template</code> We refer to the nested elements by using combination of <code>firstChild</code>, <code>nextSibling</code> etc.</p>
+<p>And this is in short how Solid works. Effectively these two parts: <code>dependency tracking</code> and <code>JSX</code> provide the best of both worlds. We get the best performance by executing only the minimal code which is needed and with <code>JSX</code> we get to keep the mental model introduced by React which keeps us more productive.</p>  ]]></description>
+  </item>
+  <item> 
+    <title><![CDATA[ Using iTerm triggers ]]></title>
+    <link>https://atfzl.com/using-iterm-triggers</link>
+    <guid>https://atfzl.com/using-iterm-triggers</guid>
+    <pubDate>Tue, 19 Nov 2019 18:17:38 +0000</pubDate>
+    <dc:creator><![CDATA[ Using iTerm triggers ]]></dc:creator>
+    <description><![CDATA[  
+<p>iTerm triggers can be used for converting text in your terminal to URLs and make them clickable. This is useful for creating JIRA issue links whenever there is a <code>JIRA-1234</code> like pattern.</p>
+<h2 id="steps">Steps:</h2>
+<p>Go to <code>iTerm -&gt; Preferences -&gt; Profiles -&gt; Advanced -&gt; Triggers Edit</code></p>
+<p><img src="/images/89d0fab1-7602-4b5b-8b05-8d22186df123.png" alt="iterm preference" width="1842" height="1242"></p>
+<p>Add an entry in the table</p>
+<pre><code>Regular Expression: (?i)JIRA-\d+
+Action:             Make Hyperlink
+Parameters:         https://jira.yourhost.com/jira/browse/\0&#xAF;</code></pre>
+<p><img src="/images/67c579d6-ec52-4d06-8c69-4ffc3cfe385e.png" alt="table" width="1816" height="702"></p>
+<p>Now whenever there is a pattern with <code>JIRA-1234</code>, it will become a clickable hyperlink.</p>  ]]></description>
+  </item>
+  <item> 
+    <title><![CDATA[ Use emacs key bindings everywhere ]]></title>
+    <link>https://atfzl.com/use-emacs-key-bindings-everywhere</link>
+    <guid>https://atfzl.com/use-emacs-key-bindings-everywhere</guid>
+    <pubDate>Tue, 12 Nov 2019 13:06:26 +0000</pubDate>
+    <dc:creator><![CDATA[ Use emacs key bindings everywhere ]]></dc:creator>
+    <description><![CDATA[  
+<p>I am used to emacs keybinding.</p>
+<p>My <code>caps lock</code> is mapped to <code>ctrl</code> to avoid <a href="https://www.google.com/search?q=emacs+pinky" target="_blank">emacs pinky</a>.</p>
+<p>I am also used to making movements the emacs way , i.e.,</p>
+<pre><code>ctrl+f: right arrow
+ctrl+b: left arrow
+ctrl+p: up arrow
+ctrl+n: down arrow</code></pre>
+<p>I have also remapped <code>Ctrl+g</code> to <code>escape</code> because I despise the escape key in the MacBook Pro touch bar.</p>
+<p>Mac supports this keybinding in most applications but these do not work for all applications. Like in my case it was <a href="https://itunes.apple.com/us/app/notability/id736189492" target="_blank">Notability</a>. For any kind of text editing, easy movement is a must.</p>
+<p>After a lot of googling I found out about <a href="https://pqrs.org/osx/karabiner/" target="_blank">Karabiner-Elements</a> which modifies the key bindings in the most stable and reliable way. It also has some nice customisations like ignoring keybindings for some set of applications. I am ignoring emacs because it already has the correct keybinding and using the modified keybindings messes it up.</p>
+<p>After installing, open up the config <code>~/.config/karabiner/karabiner.json</code></p>
+<p>This is my Karabiner configurations for above mentioned modifications:</p>
+<p><code>profiles[0].simple_modifications</code> =</p>
+<pre><code class="hljs json">[
+  {
+    <span class="hljs-attr">&quot;from&quot;</span>: {
+      <span class="hljs-attr">&quot;key_code&quot;</span>: <span class="hljs-string">&quot;caps_lock&quot;</span>
+    },
+    <span class="hljs-attr">&quot;to&quot;</span>: {
+      <span class="hljs-attr">&quot;key_code&quot;</span>: <span class="hljs-string">&quot;left_control&quot;</span>
+    }
+  }
+]</code></pre>
+<p><code>profiles[0].complex_modifications.rules</code> =</p>
+<pre><code class="hljs json">[
+  {
+    <span class="hljs-attr">&quot;description&quot;</span>: <span class="hljs-string">&quot;Ctrl+F to right_arrow&quot;</span>,
+    <span class="hljs-attr">&quot;manipulators&quot;</span>: [
+      {
+        <span class="hljs-attr">&quot;description&quot;</span>: <span class="hljs-string">&quot;emacs like movement&quot;</span>,
+        <span class="hljs-attr">&quot;from&quot;</span>: {
+          <span class="hljs-attr">&quot;key_code&quot;</span>: <span class="hljs-string">&quot;f&quot;</span>,
+          <span class="hljs-attr">&quot;modifiers&quot;</span>: {
+            <span class="hljs-attr">&quot;mandatory&quot;</span>: [
+              <span class="hljs-string">&quot;left_control&quot;</span>
+            ]
+          }
+        },
+        <span class="hljs-attr">&quot;to&quot;</span>: [
+          {
+            <span class="hljs-attr">&quot;key_code&quot;</span>: <span class="hljs-string">&quot;right_arrow&quot;</span>
+          }
+        ],
+        <span class="hljs-attr">&quot;conditions&quot;</span>: [
+          {
+            <span class="hljs-attr">&quot;type&quot;</span>: <span class="hljs-string">&quot;frontmost_application_unless&quot;</span>,
+            <span class="hljs-attr">&quot;bundle_identifiers&quot;</span>: [
+              <span class="hljs-string">&quot;^org\\.gnu\\.Emacs&quot;</span>
+            ]
+          }
+        ],
+        <span class="hljs-attr">&quot;type&quot;</span>: <span class="hljs-string">&quot;basic&quot;</span>
+      }
+    ]
+  },
+  {
+    <span class="hljs-attr">&quot;description&quot;</span>: <span class="hljs-string">&quot;Ctrl+B to left_arrow&quot;</span>,
+    <span class="hljs-attr">&quot;manipulators&quot;</span>: [
+      {
+        <span class="hljs-attr">&quot;description&quot;</span>: <span class="hljs-string">&quot;emacs like movement&quot;</span>,
+        <span class="hljs-attr">&quot;from&quot;</span>: {
+          <span class="hljs-attr">&quot;key_code&quot;</span>: <span class="hljs-string">&quot;b&quot;</span>,
+          <span class="hljs-attr">&quot;modifiers&quot;</span>: {
+            <span class="hljs-attr">&quot;mandatory&quot;</span>: [
+              <span class="hljs-string">&quot;left_control&quot;</span>
+            ]
+          }
+        },
+        <span class="hljs-attr">&quot;to&quot;</span>: [
+          {
+            <span class="hljs-attr">&quot;key_code&quot;</span>: <span class="hljs-string">&quot;left_arrow&quot;</span>
+          }
+        ],
+        <span class="hljs-attr">&quot;conditions&quot;</span>: [
+          {
+            <span class="hljs-attr">&quot;type&quot;</span>: <span class="hljs-string">&quot;frontmost_application_unless&quot;</span>,
+            <span class="hljs-attr">&quot;bundle_identifiers&quot;</span>: [
+              <span class="hljs-string">&quot;^org\\.gnu\\.Emacs&quot;</span>
+            ]
+          }
+        ],
+        <span class="hljs-attr">&quot;type&quot;</span>: <span class="hljs-string">&quot;basic&quot;</span>
+      }
+    ]
+  },
+  {
+    <span class="hljs-attr">&quot;description&quot;</span>: <span class="hljs-string">&quot;Ctrl+P to up_arrow&quot;</span>,
+    <span class="hljs-attr">&quot;manipulators&quot;</span>: [
+      {
+        <span class="hljs-attr">&quot;description&quot;</span>: <span class="hljs-string">&quot;emacs like movement&quot;</span>,
+        <span class="hljs-attr">&quot;from&quot;</span>: {
+          <span class="hljs-attr">&quot;key_code&quot;</span>: <span class="hljs-string">&quot;p&quot;</span>,
+          <span class="hljs-attr">&quot;modifiers&quot;</span>: {
+            <span class="hljs-attr">&quot;mandatory&quot;</span>: [
+              <span class="hljs-string">&quot;left_control&quot;</span>
+            ]
+          }
+        },
+        <span class="hljs-attr">&quot;to&quot;</span>: [
+          {
+            <span class="hljs-attr">&quot;key_code&quot;</span>: <span class="hljs-string">&quot;up_arrow&quot;</span>
+          }
+        ],
+        <span class="hljs-attr">&quot;conditions&quot;</span>: [
+          {
+            <span class="hljs-attr">&quot;type&quot;</span>: <span class="hljs-string">&quot;frontmost_application_unless&quot;</span>,
+            <span class="hljs-attr">&quot;bundle_identifiers&quot;</span>: [
+              <span class="hljs-string">&quot;^org\\.gnu\\.Emacs&quot;</span>
+            ]
+          }
+        ],
+        <span class="hljs-attr">&quot;type&quot;</span>: <span class="hljs-string">&quot;basic&quot;</span>
+      }
+    ]
+  },
+  {
+    <span class="hljs-attr">&quot;description&quot;</span>: <span class="hljs-string">&quot;Ctrl+N to down_arrow&quot;</span>,
+    <span class="hljs-attr">&quot;manipulators&quot;</span>: [
+      {
+        <span class="hljs-attr">&quot;description&quot;</span>: <span class="hljs-string">&quot;emacs like movement&quot;</span>,
+        <span class="hljs-attr">&quot;from&quot;</span>: {
+          <span class="hljs-attr">&quot;key_code&quot;</span>: <span class="hljs-string">&quot;n&quot;</span>,
+          <span class="hljs-attr">&quot;modifiers&quot;</span>: {
+            <span class="hljs-attr">&quot;mandatory&quot;</span>: [
+              <span class="hljs-string">&quot;left_control&quot;</span>
+            ]
+          }
+        },
+        <span class="hljs-attr">&quot;to&quot;</span>: [
+          {
+            <span class="hljs-attr">&quot;key_code&quot;</span>: <span class="hljs-string">&quot;down_arrow&quot;</span>
+          }
+        ],
+        <span class="hljs-attr">&quot;conditions&quot;</span>: [
+          {
+            <span class="hljs-attr">&quot;type&quot;</span>: <span class="hljs-string">&quot;frontmost_application_unless&quot;</span>,
+            <span class="hljs-attr">&quot;bundle_identifiers&quot;</span>: [
+              <span class="hljs-string">&quot;^org\\.gnu\\.Emacs&quot;</span>
+            ]
+          }
+        ],
+        <span class="hljs-attr">&quot;type&quot;</span>: <span class="hljs-string">&quot;basic&quot;</span>
+      }
+    ]
+  },
+  {
+    <span class="hljs-attr">&quot;description&quot;</span>: <span class="hljs-string">&quot;Ctrl+G to Escape&quot;</span>,
+    <span class="hljs-attr">&quot;manipulators&quot;</span>: [
+      {
+        <span class="hljs-attr">&quot;description&quot;</span>: <span class="hljs-string">&quot;emacs like escape&quot;</span>,
+        <span class="hljs-attr">&quot;from&quot;</span>: {
+          <span class="hljs-attr">&quot;key_code&quot;</span>: <span class="hljs-string">&quot;g&quot;</span>,
+          <span class="hljs-attr">&quot;modifiers&quot;</span>: {
+            <span class="hljs-attr">&quot;mandatory&quot;</span>: [
+              <span class="hljs-string">&quot;left_control&quot;</span>
+            ]
+          }
+        },
+        <span class="hljs-attr">&quot;to&quot;</span>: [
+          {
+            <span class="hljs-attr">&quot;key_code&quot;</span>: <span class="hljs-string">&quot;escape&quot;</span>
+          }
+        ],
+        <span class="hljs-attr">&quot;conditions&quot;</span>: [
+          {
+            <span class="hljs-attr">&quot;type&quot;</span>: <span class="hljs-string">&quot;frontmost_application_unless&quot;</span>,
+            <span class="hljs-attr">&quot;bundle_identifiers&quot;</span>: [
+              <span class="hljs-string">&quot;^org\\.gnu\\.Emacs&quot;</span>
+            ]
+          }
+        ],
+        <span class="hljs-attr">&quot;type&quot;</span>: <span class="hljs-string">&quot;basic&quot;</span>
+      }
+    ]
+  }
+]</code></pre>  ]]></description>
+  </item>
+  <item> 
+    <title><![CDATA[ Understanding Solid: Reactivity Basics ]]></title>
+    <link>https://atfzl.com/understanding-solid-reactivity-basics</link>
+    <guid>https://atfzl.com/understanding-solid-reactivity-basics</guid>
+    <pubDate>Thu, 10 Oct 2019 00:00:00 +0000</pubDate>
+    <dc:creator><![CDATA[ Understanding Solid: Reactivity Basics ]]></dc:creator>
+    <description><![CDATA[  
+<p><a href="https://github.com/ryansolid/solid" target="_blank">Solid</a> is a Reactive library for creating user interfaces. Solid updates the DOM only where it is required, without using Virtual DOM. Solid is <a href="https://krausest.github.io/js-framework-benchmark/current.html" target="_blank">fast</a>.</p>
+<p>To understand Solid, first we have to understand its Reactive ideology.</p>
+<p>Let&#x2019;s take an example of a simple auto updating counter to show how the code looks like and explain how it works under the hood.</p>
+<p>First a counter without a UI: <a href="https://codesandbox.io/s/solid-counter-qsjju" target="_blank">Solid Counter - CodeSandbox</a></p>
+<pre><code class="hljs js"><span class="hljs-keyword">import</span> { createState, createEffect } <span class="hljs-keyword">from</span> <span class="hljs-string">&apos;solid-js&apos;</span>;
+
+<span class="hljs-keyword">const</span> [state, setState] = createState({ <span class="hljs-attr">count</span>: <span class="hljs-number">0</span> });
+
+<span class="hljs-built_in">setInterval</span>(<span class="hljs-function">() =&gt;</span> {
+  setState({ <span class="hljs-attr">count</span>: state.count + <span class="hljs-number">1</span> });
+}, <span class="hljs-number">1000</span>);
+
+createEffect(<span class="hljs-function">() =&gt;</span> {
+  <span class="hljs-built_in">console</span>.log(state.count);
+});</code></pre>
+<p>This code looks too much similar to React hooks and it is actually inspired from React hooks. But there is a major difference, contrary to React, this code will not run again and again top to down like in a React component. Instead we have code blocks which are run whenever their dependencies are updated.</p>
+<h2 id="createeffect">createEffect</h2>
+<p>Whenever the value of <code>state.count</code> is updated the code block passed to <code>createEffect</code> is called which in turn will call <code>console.log</code> every 1 second.</p>
+<pre><code>0
+1
+2
+3
+4
+...</code></pre>
+<p>How does <code>createEffect</code> knows when to call this function whenever <code>state.count</code> changes ?</p>
+<p>The answer lies in Javascript <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Proxy" target="_blank">Proxy</a>.</p>
+<p>The state returned by createState is actually a proxy object, it has setter and getter traps for all properties on the original object.</p>
+<p>Whenever a value is updated on this object, the setter is called. And whenever a value is accessed, the getter is called.</p>
+<p>Let&#x2019;s try to have a feel with some rough pseudocode:</p>
+<pre><code class="hljs js"><span class="hljs-keyword">let</span> activeBlock;
+
+<span class="hljs-comment">// not real code, rough estimation</span>
+state.count = {
+  <span class="hljs-attr">_blocks</span>: [],
+  <span class="hljs-function"><span class="hljs-title">getter</span>(<span class="hljs-params"></span>)</span> {
+    <span class="hljs-keyword">if</span> (activeBlock) {
+      <span class="hljs-built_in">this</span>._blocks.push(activeBlock);
+    }
+    ...
+  }
+  <span class="hljs-function"><span class="hljs-title">setter</span>(<span class="hljs-params"></span>)</span> {
+    <span class="hljs-keyword">if</span> (<span class="hljs-built_in">this</span>._blocks.length) {
+      <span class="hljs-built_in">this</span>._blocks.forEach(<span class="hljs-function"><span class="hljs-params">block</span> =&gt;</span> block());
+    }
+    ...
+  }
+}
+
+<span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-title">createEffect</span>(<span class="hljs-params">f</span>) </span>{
+  activeBlock = f;
+  f();
+  activeBlock = <span class="hljs-literal">undefined</span>;
+}
+
+...
+
+createEffect(<span class="hljs-function">() =&gt;</span> {
+  <span class="hljs-built_in">console</span>.log(state.count);
+});</code></pre>
+<p>Let&#x2019;s call the function passed to createEffect as <code>f</code>.</p>
+<p>When we call createEffect, first we save <code>f</code> in <code>activeBlock</code> variable and then run <code>f</code>. Then whenever a getter is hit, we save <code>activeBlock</code> with the current property so that the dependent blocks can be run, when there is a hit to its setter.</p>
+<p>In our counter example, <code>f</code> is the block with <code>console.log(state.count)</code> in it. For the first time when <code>createEffect</code> calls <code>f</code>, it saves <code>f</code> in <code>activeBlock</code> variable. Then it runs <code>f</code>.</p>
+<p>Now when <code>f</code> runs, it encounters <code>state.count</code> and its getter is executed. Then <code>f</code> is pushed to <code>this._blocks</code>.</p>
+<p>If we also had some other block with <code>state.count</code>, its reference would also be pushed in the <code>this._blocks</code> array.</p>
+<pre><code class="hljs js">createEffect(<span class="hljs-function">() =&gt;</span> {
+  <span class="hljs-built_in">console</span>.log(<span class="hljs-string">&apos;2 x Counter = &apos;</span>, state.count * <span class="hljs-number">2</span>);
+});</code></pre>
+<p>If in the future <code>state.count</code> is updated, its setter will be triggered and it will execute all its saved blocks.</p>
+<p>In this way we do not need to explicitly define what we have to track, and the blocks would be run whenever anything in the block changes.</p>
+<h2 id="setstate-instead-of-setter">setState instead of setter</h2>
+<p>Solid emphasizes uni-directional data flow like React. So instead of directly updating the value of state, <code>setState</code> must be used to trigger the setter.</p>
+<h2 id="reactive-html-element-with-solid">Reactive html element with solid</h2>
+<p>Now that we know the basics of <code>createEffect</code> and how its works, let&#x2019;s use <code>createEffect</code> to update an HTML element.</p>
+<p>Counter with a UI element: <a href="https://codesandbox.io/s/solid-counter-kpjok" target="_blank">Solid Counter - CodeSandbox</a></p>
+<pre><code class="hljs js"><span class="hljs-keyword">const</span> [state, setState] = createState({ <span class="hljs-attr">count</span>: <span class="hljs-number">0</span> });
+
+<span class="hljs-built_in">setInterval</span>(<span class="hljs-function">() =&gt;</span> {
+  setState({ <span class="hljs-attr">count</span>: state.count + <span class="hljs-number">1</span> });
+}, <span class="hljs-number">1000</span>);
+
+<span class="hljs-keyword">const</span> el = <span class="hljs-built_in">document</span>.createElement(<span class="hljs-string">&apos;div&apos;</span>);
+
+<span class="hljs-built_in">document</span>.body.appendChild(el);
+
+createEffect(<span class="hljs-function">() =&gt;</span> {
+  el.innerText = state.count;
+});</code></pre>
+<p>So we are using createEffect to update the DOM text.</p>
+<p>Similarly we can update className, style and other attributes reactively:</p>
+<h4 id="classname">className</h4>
+<pre><code class="hljs js">createEffect(<span class="hljs-function">() =&gt;</span> {
+  el.className = state.count % <span class="hljs-number">2</span> === <span class="hljs-number">0</span> ? <span class="hljs-string">&quot;even&quot;</span> : <span class="hljs-string">&quot;odd&quot;</span>;
+});</code></pre>
+<h4 id="style">style</h4>
+<p>we are using Object.assign because <code>=</code> does not work with style attribute.</p>
+<pre><code class="hljs js">createEffect(<span class="hljs-function">() =&gt;</span> {
+  <span class="hljs-built_in">Object</span>.assign(
+    el.style,
+    { <span class="hljs-attr">color</span>: state.count % <span class="hljs-number">2</span> === <span class="hljs-number">0</span> ? <span class="hljs-string">&quot;black&quot;</span> : <span class="hljs-string">&quot;white&quot;</span> }
+  );
+});</code></pre>
+<h4 id="data-">data-*</h4>
+<pre><code class="hljs js">createEffect(<span class="hljs-function">() =&gt;</span> {
+  el.setAttribute(
+    <span class="hljs-string">&quot;data-test&quot;</span>, 
+    state.count % <span class="hljs-number">2</span> === <span class="hljs-number">0</span> ? <span class="hljs-string">&quot;even&quot;</span> : <span class="hljs-string">&quot;odd&quot;</span>
+  );
+});</code></pre>
+<p>These were the basic reactive ideas needed to understand how solid works under the hood. Next post will cover <code>jsx</code> in solid.</p>
+<hr>
+<p>This is the first blog post of series: <code>Understanding Solid</code>.</p>
+<p>Next post <a href="https://www.atfzl.com/understanding-solid-jsx" class="uri" target="_blank">https://www.atfzl.com/understanding-solid-jsx</a></p>  ]]></description>
+  </item>
+  <item> 
+    <title><![CDATA[ Using flow and eslint in Emacs ]]></title>
+    <link>https://atfzl.com/using-flow-and-eslint-in-emacs</link>
+    <guid>https://atfzl.com/using-flow-and-eslint-in-emacs</guid>
+    <pubDate>Sun, 06 Nov 2016 00:00:00 +0000</pubDate>
+    <dc:creator><![CDATA[ Using flow and eslint in Emacs ]]></dc:creator>
+    <description><![CDATA[  
+<pre><code class="hljs lisp">(<span class="hljs-name">require</span> &apos;company)
+(<span class="hljs-name">require</span> &apos;web-mode)
+(<span class="hljs-name">require</span> &apos;flycheck)
+(<span class="hljs-name">require</span> &apos;flycheck-flow)
+
+<span class="hljs-comment">;; flow auto complete</span>
+<span class="hljs-comment">;; skip this if you don&apos;t use company-mode</span>
+(<span class="hljs-name">eval-after-load</span> &apos;company
+  &apos;(add-to-list &apos;company-backends &apos;company-flow))
+
+<span class="hljs-comment">;; add eslint and flow checkers to flycheck</span>
+(<span class="hljs-name">flycheck-add-mode</span> &apos;javascript-eslint &apos;web-mode)
+(<span class="hljs-name">flycheck-add-mode</span> &apos;javascript-flow &apos;web-mode)
+
+<span class="hljs-comment">;;disable jshint since we prefer eslint checking</span>
+(<span class="hljs-name">setq-default</span> flycheck-disabled-checkers
+  (<span class="hljs-name">append</span> flycheck-disabled-checkers
+    &apos;(javascript-jshint)))
+
+(<span class="hljs-name">defun</span> jsWithEslint ()
+  <span class="hljs-string">&quot;eslint for js files&quot;</span>
+  (<span class="hljs-name">interactive</span>)
+  (<span class="hljs-name">web-mode</span>)
+  (<span class="hljs-name">web-mode-set-content-type</span> <span class="hljs-string">&quot;jsx&quot;</span>)
+  (<span class="hljs-name">flycheck-disable-checker</span> &apos;javascript-flow)
+  (<span class="hljs-name">flycheck-select-checker</span> &apos;javascript-eslint)
+  (<span class="hljs-name">flycheck-mode</span>))
+
+(<span class="hljs-name">defun</span> jsWithEslintFlow ()
+  <span class="hljs-string">&quot;flow and eslint for js files&quot;</span>
+  (<span class="hljs-name">interactive</span>)
+  (<span class="hljs-name">web-mode</span>)
+  (<span class="hljs-name">web-mode-set-content-type</span> <span class="hljs-string">&quot;jsx&quot;</span>)
+  (<span class="hljs-name">flycheck-select-checker</span> &apos;javascript-eslint)
+  (<span class="hljs-name">flycheck-add-next-checker</span> &apos;javascript-eslint &apos;javascript-flow)
+  (<span class="hljs-name">flycheck-mode</span>))
+
+<span class="hljs-comment">;; set key shortcuts if you want</span>
+<span class="hljs-comment">;; (global-set-key (kbd &quot;C-c j&quot;) &apos;jsWithEslint)</span>
+<span class="hljs-comment">;; (global-set-key (kbd &quot;C-c f&quot;) &apos;jsWithEslintFlow)</span>
+
+(<span class="hljs-name">add-to-list</span> &apos;auto-mode-alist &apos;(<span class="hljs-string">&quot;\\.js\\&apos;&quot;</span>      . jsWithEslint))
+(<span class="hljs-name">add-to-list</span> &apos;magic-mode-alist &apos;(<span class="hljs-string">&quot;/\\* @flow \\*/&quot;</span> . jsWithEslintFlow))</code></pre>
+<p>Now all the .js files will use eslint.<br>
+But if you have <code>/\* @flow \*/</code> comment at the first line, flow will also be used.</p>
+<p>To use local eslint and flow-bin from your node_modules, check out this package: <a href="https://github.com/codesuki/add-node-modules-path" target="_blank">add-node-modules-path</a>.</p>  ]]></description>
+  </item>
+</channel>
+</rss>

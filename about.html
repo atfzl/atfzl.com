@@ -2,13 +2,13 @@
 <html>
 <head>
     <meta charset="utf-8">
-    <title>Don’t attach tooltips to document.body - Atif Afzal</title>
+    <title>About - Atif Afzal</title>
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <meta name="description" content="Instead of attaching tooltips directly to document.body, attach them to a predefined div in document.body. BAD GOOD Tooltips in our app were taking">
+    <meta name="description" content="Frontend software engineer with a penchant for delivering fast and dependable products. I’m a big proponent of improving developer experiences.">
     <meta name="twitter:card" content="summary">
     <meta property="og:type" content="website">
-    <meta name="twitter:title" property="og:title" itemprop="title name" content="Don’t attach tooltips to document.body - Atif Afzal">
-    <meta name="twitter:description" property="og:description" itemprop="description" content="Instead of attaching tooltips directly to document.body, attach them to a predefined div in document.body. BAD GOOD Tooltips in our app were taking">
+    <meta name="twitter:title" property="og:title" itemprop="title name" content="About - Atif Afzal">
+    <meta name="twitter:description" property="og:description" itemprop="description" content="Frontend software engineer with a penchant for delivering fast and dependable products. I’m a big proponent of improving developer experiences.">
     <link rel="alternate" type="application/rss+xml" title="RSS Feed for Atif Afzal" href="https://atfzl.com/feed.rss">
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
@@ -559,131 +559,16 @@ input#search:focus {
 </div>    <div class="container">
       <div class="main">
         <div class="entry">
-          <a class="small date left margin" href="&#x2F;don-t-attach-tooltips-to-document-body">March 10, 2021</a>
 
-          <h1 id="dont-attach-tooltips-to-document.body">Don’t attach tooltips to document.body</h1>
-<h2 id="tldr">TL;DR</h2>
-<p>Instead of attaching tooltips directly to <code>document.body</code>, attach them to a predefined div in <code>document.body</code>.</p>
-<p><strong>BAD</strong></p>
-<pre><code class="hljs html"><span class="hljs-tag">&lt;<span class="hljs-name">body</span>&gt;</span>
-    <span class="hljs-comment">&lt;!-- temporary div, vanishes when tooltips vanishes --&gt;</span>
-    <span class="hljs-tag">&lt;<span class="hljs-name">div</span>&gt;</span>my tooltip<span class="hljs-tag">&lt;/<span class="hljs-name">div</span>&gt;</span>
-<span class="hljs-tag">&lt;<span class="hljs-name">body</span>&gt;</span></code></pre>
-<p><strong>GOOD</strong></p>
-<pre><code class="hljs html"><span class="hljs-tag">&lt;<span class="hljs-name">body</span>&gt;</span>
-    <span class="hljs-comment">&lt;!-- this div stays forever, just for attaching tooltips --&gt;</span>
-    <span class="hljs-tag">&lt;<span class="hljs-name">div</span> <span class="hljs-attr">id</span>=<span class="hljs-string">&quot;tooltips-container&quot;</span>&gt;</span>
-        <span class="hljs-comment">&lt;!-- temporary div, vanishes when tooltips vanishes --&gt;</span>
-        <span class="hljs-tag">&lt;<span class="hljs-name">div</span>&gt;</span>my tooltip<span class="hljs-tag">&lt;/<span class="hljs-name">div</span>&gt;</span>
-    <span class="hljs-tag">&lt;/<span class="hljs-name">div</span>&gt;</span>
-<span class="hljs-tag">&lt;<span class="hljs-name">body</span>&gt;</span></code></pre>
-<h2 id="introduction">Introduction</h2>
-<p>Tooltips in our app were taking <code>&gt;80ms</code>. And during this time, the main thread was blocked, you couldn’t interact with anything.</p>
-<p>Other components like modal, popover, dropdown had similar performance issues. In some cases, a modal took more than 1 second to appear while making the UI unresponsive.</p>
-<p><img src="/images/42567303-439e-4b20-84dc-0acd2179691e.png" alt="Tooltip performance timeline" width="1350" height="1252"></p>
-<p>The main reason for the slowness of Tooltip was <code>Recalculate Style</code> being called at the end of mouseover event call stack which takes a lot of time.</p>
-<p><img src="/images/d9a0f2a4-c38d-4aef-a378-149095172e02.png" alt="Call Stack Recalculate Style" width="722" height="300"></p>
-<p>I noticed the tooltip performance was inversely proportional to number of DOM nodes currently in document.</p>
-<p><img src="/images/cd5638e6-8875-4b3a-9792-16487dcb001b.png" alt="Performance DOM Nodes graph" width="422" height="244"></p>
-<p>This investigation started off with trying to use the css property <code>contain</code> to signal the browser about the containment of a particular DOM Node so that the <code>Recalculate Style</code> will not affect all the nodes. But applying the property on the element where we hover didn’t help as the tooltips were being rendered outside of the element, directly as a child of the <code>body</code> of the page.</p>
-<p>Next step was to try rendering the tooltip into a separate container and not directly in the body. Then we’ll set the <code>contain</code> css property to signal the browser to not do the expensive <code>Recalculate Style</code>.</p>
-<p>To my amazement, just having a separate container without even adding the css <code>contain</code> property fixed the performance. The main problem now, was to explain it. First I thought this might be some internal browser heuristic optimizing the <code>Recalculate Style</code>, but there is no black magic and I discovered the reason.</p>
-<p>Before diving deep into the investigation, we’ll talk about some prerequisites.</p>
-<h2 id="how-browser-works-at-page-load">How browser works at page load</h2>
-<p>The browser creates a DOM tree from the HTML string.</p>
-<p><img src="/images/a4dd83f7-1c48-4436-96c1-28fad953701d.png" alt="Dom Tree from HTML String" width="512" height="244"></p>
-<p>You can see it as <code>Parse HTML</code> in the performance timeline in Chrome DevTools.</p>
-<p><img src="/images/0b42e521-5df8-4d57-b119-144d6018e3a2.png" alt="Parse HTML in Performance Timeline" width="512" height="99"></p>
-<p>Then the CSS is parsed and browser creates the CSSOM (CSS Object Model).</p>
-<p><img src="/images/c143d55c-fe22-4528-a9af-79d83c0b3fe1.jpg" alt="CSS Object Model" width="512" height="280"></p>
-<p>Then the browser combines the DOM and CSSOM to create the <code>render tree</code>.</p>
-<p><img src="/images/4909edcc-87b1-41c1-b5a4-00e87b1c9f8b.png" alt="Render Tree" width="512" height="157"></p>
-<p>Render tree consists of elements currently visible on the page. Elements with property like <code>display: none</code> are not part of the <code>render tree</code>. If we have a pseudo element in CSS like <code>after</code>, then it is part of the <code>render tree</code> although it is not a part of the DOM. The creation/modification of the render tree is called <code>Recalculate Style</code> in the performance timeline.</p>
-<p><img src="/images/3606e18e-5417-417f-b564-bb34f04c4407.png" alt="Recalculate Style in Performance Timeline" width="512" height="53"></p>
-<blockquote>
-<p>Important: render tree is invalidated when we modify DOM or change styles of any element.</p>
-</blockquote>
-<p>Next step is <code>layout</code>. Layout is calculating the size and positions of elements of the render tree, to know where we have to draw exactly. This is referred to as <code>Layout</code> in the performance timeline.</p>
-<p><img src="/images/d3ddd1c8-5f55-47c6-827f-ce0dc234c312.png" alt="Layout in Performance Timeline" width="512" height="27"></p>
-<p><code>Layout</code> may need to be done again whenever there is a change in size/position of an element which affects the position of all the elements in the page. <code>Layout</code> is also known as <code>Reflow</code>.</p>
-<p>Next steps are <code>paint</code> and <del>composting</del> <code>composite</code> but we won’t talk about them here as they are not important for explanation of this topic.</p>
-<h2 id="how-browser-handles-rendering-during-runtime">How browser handles rendering during runtime</h2>
-<p><img src="/images/cfbe79de-9352-4f32-a8af-f839a1784eef.jpg" alt="Rendering during Runtime" width="512" height="78"></p>
-<p>To render a frame in a browser, we go in this order: JavaScript runs, then there are style calculation, then layout. Ignore Paint and Composite for now.</p>
-<p>When we access any layout property like <code>offsetWidth</code>, <code>offsetParent</code>, <code>width</code> etc, the browser returns the value from previously calculated layout calculations, which is not expensive as the calculation was done earlier in the previous frame and now we are just reading it.</p>
-<p>But what happens when we change a style on an element or modify the DOM? Then the browser has its own heuristics and is smart enough to know if the browser needs to <code>Recalculate Style</code>/<code>Layout</code> in the current frame or defer it for later.</p>
-<p>You can see it as <code>Schedule Style Recalculation</code> in timeline.</p>
-<p><img src="/images/576e35de-1548-4fa9-bc6b-1bc0414a0f3f.png" alt="Schedule Style Recalculation in Timeline" width="396" height="54"></p>
-<p>The problem happens when we try to access a layout property just after we change style/modify DOM. Then the browser has to force <code>Recalculate Style</code>/<code>Layout</code> because browser has to return the current value, it cannot give you a stale value from the previous frame. This causes the problem known as <code>Layout Thrashing</code>.</p>
-<p>Example:<br>
-<strong>BAD</strong></p>
-<p><img src="/images/aae26576-396d-46cf-9265-be3f12ebb40b.png" alt="Bad Style Change" width="512" height="264"></p>
-<p>Here we are first changing the style and then immediately reading <code>offsetHeight</code> property which causes a <code>Synchronous Forced Layout</code>.</p>
-<p>You’ll see this warning in browser when this happens:</p>
-<p><img src="/images/911239f1-6cc4-4ef2-a40d-66d011330b4f.png" alt="Forced Reflow Warning" width="512" height="38"></p>
-<p><strong>GOOD</strong></p>
-<p><img src="/images/aca72dbb-333e-4d2f-8e3b-2da94edae8f2.png" alt="Good Style Change" width="512" height="230"></p>
-<p>This is fine because we are first reading the layout property <code>offsetHeight</code> which is not expensive as we are just reading the value from the previous frame’s layout calculation. Then we change the style later which is ok, the layout might still happen but it is up to browser when to do it, it is not forced.</p>
-<h2 id="investigation">Investigation</h2>
-<p><img src="/images/79ed6c15-e9b3-4929-a75e-3d74dba53232.png" alt="Recalculate Style summary" width="512" height="396"></p>
-<p>Here we can see a lot of elements (807) are affected by the <code>Recalculate Style</code> event which is the reason this event takes a lot of time.</p>
-<p>The <code>Call Stacks</code> detail gives us important information to debug this issue. The field <code>Recalculation Forced</code> shows the value <code>getOffsetParent @ popper.js:188</code> which is this code in <code><a href="/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="34445b444451461a5e4774051a05011a04">[email&#160;protected]</a></code>:</p>
-<pre><code class="hljs js"><span class="hljs-keyword">var</span> offsetPArent = element.offsetParent;</code></pre>
-<p>The next field is <code>First Invalidation</code> with value <code>Tooltip._this.handleEnter @ Tooltip.js:165</code> in <code>@material-ui/<a href="/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="9af9f5e8ffdaa9b4a3b4a9">[email&#160;protected]</a></code></p>
-<pre><code class="hljs js">_this.childrenRef.setAttribute(<span class="hljs-string">&#x27;title&#x27;</span>, <span class="hljs-string">&#x27;&#x27;</span>);</code></pre>
-<p>The <code>First Invalidation</code> shows where in code, the render tree was first invalidated which later caused <code>Forced Reflow</code> because of <code>Recalculation Forced</code> code.</p>
-<p>Doing <code>setAttribute</code> on an element in DOM is invalidating the render tree, and then accessing the <code>offsetParent</code> causes a <code>Forced Synchronous Layout</code>.</p>
-<p>Had this been done in the opposite direction it wouldn’t be a problem.</p>
-<p>I tried commenting the setAttribute code and again ran the performance timeline. But the issue was still there but the invalidation was happening somewhere else.</p>
-<p><img src="/images/054069df-d88a-417e-a652-c8d729894adf.png" alt="First Invalidated" width="512" height="300"></p>
-<p>The invalidation is now happening when the tooltip is added to the body, which invalidates the render tree.</p>
-<p>Popper accessing the <code>offsetParent</code> property after attaching the tooltip to the body is causing <code>Forced Reflow</code>. If this property access was done before attaching the tooltip to body, the reflow would not have happened.</p>
-<p>But all this is not in our control as the code is in the third party library <code>popper.js</code>.</p>
-<p>Now, what can we do?</p>
-<p>Next, I created a separate container in the body where the tooltip would always be attached.</p>
-<pre><code class="hljs html"><span class="hljs-tag">&lt;<span class="hljs-name">body</span>&gt;</span>
-    <span class="hljs-tag">&lt;<span class="hljs-name">div</span> <span class="hljs-attr">id</span>=<span class="hljs-string">&quot;tooltips-container&quot;</span>&gt;</span><span class="hljs-tag">&lt;/<span class="hljs-name">div</span>&gt;</span>
-    <span class="hljs-tag">&lt;<span class="hljs-name">div</span> <span class="hljs-attr">id</span>=<span class="hljs-string">&quot;myapp&quot;</span>&gt;</span>...<span class="hljs-tag">&lt;/<span class="hljs-name">div</span>&gt;</span>
-<span class="hljs-tag">&lt;/<span class="hljs-name">body</span>&gt;</span></code></pre>
-<p>And instructed the popper to be rendered in this container.</p>
-<pre><code class="hljs js"><span class="hljs-keyword">const</span> popperProps = {
-    <span class="hljs-attr">container</span>: <span class="hljs-function">() =&gt;</span> <span class="hljs-built_in">document</span>.getElementById(<span class="hljs-string">&#x27;tooltips-container&#x27;</span>),
-};</code></pre>
-<p>Now, the performance was greatly improved, the <code>Recalculate Style</code> still happened but its cost was less than before. 0.79ms down from 66.57ms:</p>
-<p><img src="/images/2814d1be-d234-4224-8999-24d32e64605e.png" alt="Low Recalculate Style" width="512" height="269"></p>
-<p>What happened here? The tooltip was attached to the tooltip container and not to the body. This invalidated a much smaller subtree, which was the tooltip container. The tooltip container is not visible in the page, so modifying it doesn’t invalidate the complete page render tree. If the tooltip container would have been visible in the page, then the complete render tree would be invalidated but in this case only an independent subtree was invalidated. <code>Recalculating Style</code> for a small subtree of 3 doesn’t take a lot of time and hence is faster.</p>
-<p>The <code>Element Affected</code> is 3 which is the number of nodes inside our tooltip container.</p>
-<pre><code class="hljs html"><span class="hljs-tag">&lt;<span class="hljs-name">div</span> <span class="hljs-attr">id</span>=<span class="hljs-string">&quot;tooltips-container&quot;</span>&gt;</span>
-    <span class="hljs-tag">&lt;<span class="hljs-name">div</span> <span class="hljs-attr">role</span>=<span class="hljs-string">&quot;tooltip&quot;</span> <span class="hljs-attr">...</span>&gt;</span>
-        <span class="hljs-tag">&lt;<span class="hljs-name">div</span> <span class="hljs-attr">class</span>=<span class="hljs-string">&quot;MuiTooltip-tooltip-66 ...&quot;</span> <span class="hljs-attr">...</span>&gt;</span>
-            <span class="hljs-tag">&lt;<span class="hljs-name">span</span> <span class="hljs-attr">class</span>=<span class="hljs-string">&quot;tooltipContent__..&quot;</span>&gt;</span>
-                Tooltip Text
-            <span class="hljs-tag">&lt;/<span class="hljs-name">span</span>&gt;</span>
-        <span class="hljs-tag">&lt;/<span class="hljs-name">div</span>&gt;</span>
-    <span class="hljs-tag">&lt;/<span class="hljs-name">div</span>&gt;</span>
-<span class="hljs-tag">&lt;/<span class="hljs-name">div</span>&gt;</span></code></pre>
-<p>The ideal case would be to not access the <code>offsetParent</code> property in DOM after attaching it, but it is needed for <code>popper.js</code> to calculate where to render the tooltip.</p>
-<p>Popper.js first attaches the tooltip to the body and then moves it to the correct position. If popper.js calculated the position first and then attached the tooltip to the body later, then we wouldn’t have this problem of <code>Recalculate Style</code>. We are using an older version of <code>@material-ui/<a href="/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="60030f120520534e594e53">[email&#160;protected]</a></code> which is using an old version of <code><a href="/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="abdbc4dbdbced985c1d8eb9a859a9e859b">[email&#160;protected]</a></code>.</p>
-<h2 id="result">Result</h2>
-<p>The mouseover event in our tooltip finishes much quickly and does not cause jank in the experience.<br>
-<strong>8ms from 80ms</strong><br>
-Tooltips are now <strong>10x faster</strong>.</p>
-<p><img src="/images/1e35b3bb-c083-4da7-9c2c-8797bab83e12.png" alt="Final Result" width="512" height="369"></p>
-<h2 id="references">References</h2>
-<ul>
-<li><a href="https://www.udacity.com/course/website-performance-optimization--ud884" target="_blank">Website Performance Optimization - Udacity</a> (App load optimization)</li>
-<li><a href="https://www.udacity.com/course/browser-rendering-optimization--ud860" target="_blank">Browser Rendering Optimization - Udacity</a> (App runtime optimization)</li>
-<li><a href="https://developers.google.com/web/fundamentals/performance/rendering/avoid-large-complex-layouts-and-layout-thrashing?utm_source=devtools#avoid_forced_synchronous_layouts" target="_blank">Avoid forced synchronous layouts - Web Fundamentals Google</a></li>
-<li><a href="https://gist.github.com/paulirish/5d52fb081b3570c81e3a" target="_blank">What DOM element property access forces layout / reflow</a></li>
-<li><a href="https://developers.google.com/web/updates/2016/06/css-containment" target="_blank">CSS Containment in Chrome 52</a></li>
-<li><a href="https://www.youtube.com/watch?v=iqcO-5_KkJ4" target="_blank">Improving Website Performance with CSS Containment by Manuel Rego | CSSconf EU 2019 Youtube</a></li>
-<li><a href="https://people.igalia.com/mrego/talks/cssconf-eu-2019-css-containment/" target="_blank">Improving website performance with css containment - Slides</a></li>
-</ul>
-<h2 id="discussions">Discussions</h2>
-<ul>
-<li><a href="https://www.reddit.com/r/javascript/comments/p1xwz0/dont_attach_tooltips_to_documentbody/" target="_blank">Reddit</a></li>
-<li><a href="https://news.ycombinator.com/item?id=28230977" target="_blank">Hacker News</a></li>
-</ul>
+          <h1 id="about">About</h1>
+<h2 id="my-name-is-atif-afzal">My name is Atif Afzal</h2>
+<p>Frontend software engineer with a penchant for delivering fast and dependable products. I’m a big proponent of improving developer experiences.</p>
+<h2 id="contact">Contact</h2>
+<p><a href="/cdn-cgi/l/email-protection#7e1f0a17183e1f0a180412501d1113" class="email"><span class="__cf_email__" data-cfemail="6f0e1b06092f0e1b091503410c0002">[email&#160;protected]</span></a><br>
+<a href="https://github.com/atfzl" class="uri" target="_blank">http://github.com/atfzl</a><br>
+<a href="http://linkedin.com/in/atfzl" class="uri" target="_blank">http://linkedin.com/in/atfzl</a></p>
+<h2 id="resume">Resume</h2>
+<p><a href="/files/atif_afzal_resume.pdf">Resume (pdf)</a></p>
 
 
           <div class="clear"></div>

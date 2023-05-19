@@ -1,0 +1,630 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>Optimizing Netlify - Atif Afzal</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="description" content="We’ll optimize Netlify’s Single Page web application load time. Log in to https://netlify.com.  You’ll be redirected to https://app.netlify.com">
+    <meta name="twitter:card" content="summary">
+    <meta property="og:type" content="website">
+    <meta name="twitter:title" property="og:title" itemprop="title name" content="Optimizing Netlify - Atif Afzal">
+    <meta name="twitter:description" property="og:description" itemprop="description" content="We’ll optimize Netlify’s Single Page web application load time. Log in to https://netlify.com.  You’ll be redirected to https://app.netlify.com">
+    <link rel="alternate" type="application/rss+xml" title="RSS Feed for Atif Afzal" href="https://atfzl.com/feed.rss">
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;700&display=swap"
+      rel="stylesheet"
+    />
+    <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono&display=swap" rel="stylesheet" />
+    <style>
+
+
+/* Small caps */
+.small-caps {}
+
+/* Double quote (") marks */
+.pull-double{margin-left:-.45em}
+.push-double{margin-right:.45em}
+
+/* Single quote (') marks */
+.pull-single{margin-left:-.20em}
+.push-single{margin-right:.20em}
+
+/* Optical margin alignment for particular letters */
+.pull-T, .pull-V, .pull-W, .pull-Y {margin-left: -0.1em}
+.push-T, .push-V, .push-W, .push-Y {margin-right: 0.1em}
+
+.pull-O, .pull-C, .pull-o, .pull-c {margin-left: -0.06em}
+.push-O, .push-C, .push-o, .push-c {margin-right: 0.06em}
+
+.pull-A {margin-left: -0.04em}
+.push-A {margin-right: 0.04em}
+
+:root {
+  --main-font-family: "IBM Plex Sans", -apple-system, BlinkMacSystemFont, "avenir next", avenir, "helvetica neue", helvetica, ubuntu, roboto, noto, "segoe ui", arial, sans-serif;
+}
+
+html {
+  overflow-y: scroll;
+}
+
+body {
+  font: 16px var(--main-font-family);
+  text-rendering: optimizeLegibility;
+  /*-webkit-font-smoothing: antialiased;*/
+  /*
+  font-variant-ligatures: common-ligatures;
+  font-feature-settings: "liga";
+  -moz-font-feature-settings: “liga” on;
+  */
+  color: #000;
+  word-wrap: break-word;
+  line-height: 1.5;
+  margin: 16px;
+}
+
+.clear {width: 100%;clear: both;float: none;display: block;height: 0}
+
+.small,
+.caption {font-size: 13px;font-family: var(--main-font-family);color: #999;font-weight: 500;}
+
+.caption {
+  line-height: 18px;
+  display: block;
+  margin: 9px auto 24px;
+  max-width: 600px;
+  font-style: normal;
+}
+
+/* 29.3333 / 1.2933333 */
+.wide.left .caption {margin-left: 22.680412113%}
+.wide.right .caption {margin-right: 22.680412113%}
+
+
+.right {float: right;}
+.left {float: left;}
+
+div {
+  margin: 0 auto;
+  overflow: visible;
+  position: relative;
+}
+
+.header {margin-top: 48px;margin-bottom: 72px}
+.main {max-width: 60%;min-width: 600px;}
+.container {max-width: 1000px}
+.entry {margin: 72px 0 120px}
+.archive-list {
+  font-family: var(--main-font-family);
+  margin-top: 40px;
+}
+
+/* LAYOUT */
+
+.margin {
+  position: absolute;
+  box-sizing: border-box;
+  width: 29.3333%;
+}
+
+.margin blockquote {margin: 3px 0;color:#232323;padding: 3px 6px;font-size: 14px;line-height:18px;border: 1px solid rgba(0,0,0,0.1);border-left:4px solid rgba(0,0,0,0.2);background: rgba(0,0,0,0.05);}
+.margin blockquote p {margin: 0}
+
+.margin img,
+.column img {margin-top: 6px}
+
+.margin p {font-style: italic;font-family: var(--main-font-family);font-size: 0.9em;margin-top: 0}
+.margin h1, .margin h2, .margin h3 {margin-top:0}
+
+.left.margin {
+  left: -29.3333%;
+  padding-right: 30px;
+  text-align: right;
+}
+
+.right.margin {
+  right: -29.3333%;
+  padding-left: 30px;
+}
+
+.wide {
+  width: 158.6666667%;
+  margin-left: -29.3333333%;
+  overflow: auto; /* collapse internal margins */
+}
+
+.wide.left, .wide.right {width: 129.3333333%;float: none;}
+.wide.left {margin: 0 0 0 -29.3333333%}
+.wide.right {margin: 0 -29.3333333% 0 0}
+
+.column {
+  box-sizing: border-box;
+  float: left;
+}
+
+.column .caption {margin-bottom: 6px}
+
+.column.two {
+  width: 50%;
+  padding-right: 12px;
+}
+
+.column.three {
+  width: 33%;
+  padding-right: 24px;
+}
+
+.column.two + .column.two {
+  padding: 0 0 0 12px;
+}
+
+.column h1,
+.column h2,
+.column h3 {margin-bottom: -12px}
+
+/* TEXT */
+
+p, li {
+  font-size: 18px;
+  font-family: var(--main-font-family);
+  position: relative;
+  margin: 24px 0;
+  line-height: 1.6;
+}
+
+h1, h2, h3, h4, h5, h6 {
+  font-family: var(--main-font-family);
+  font-weight: 800;
+}
+
+h1 {
+  font-size: 42px;
+  margin-bottom: -4px;
+}
+
+h2 {
+  line-height: 1;
+  font-size: 24px;
+  margin: 40px 0 24px;
+}
+
+h3, h4, h5, h6 {
+  line-height: 1;
+  font-size: 20px;
+  margin: 40px 0 20px;
+}
+
+blockquote {
+  padding: 0 0 0 12px;
+  color: #777
+}
+
+/*
+p .small-caps,
+li .small-caps {
+  font-family: "Georgia Pro SC";
+}*/
+
+big {color: #000;font-size: 32px;font-family: var(--main-font-family);line-height: 48px;display: block;}
+
+/* LINKS */
+
+a {
+  color: #004984; /* 02569B */
+  text-decoration: none;
+  text-shadow: .03em 0 #fff, -.03em 0 #fff, 0 .03em #fff, 0 -.03em #fff, .06em 0 #fff, -.06em 0 #fff, .09em 0 #fff, -.09em 0 #fff, .12em 0 #fff, -.12em 0 #fff, 0 0.03em #fff, 0 -.03em #fff, 0 .06em #fff, 0 -.06em #fff, 0 .08em #fff, 0 -.08em #fff;
+  background-image: linear-gradient(#fff, #fff), linear-gradient(#fff, #fff), linear-gradient(#004984, #004984);
+  background-size: 0 0,0 0,0.07em 0.07em;
+  background-repeat: no-repeat, no-repeat, repeat-x;
+  background-position: 0% 90%, 100% 90%, 0% 95%;
+}
+
+a:hover {
+  color: #468CC7;
+  background-image: linear-gradient(#fff, #fff), linear-gradient(#fff, #fff), linear-gradient(#5599D2, #5599D2);
+}
+
+a::selection {
+  background: #b3d4fd;
+  text-shadow: .03em 0 #b3d4fd, -.03em 0 #b3d4fd, 0 .03em #b3d4fd, 0 -.03em #b3d4fd, .06em 0 #b3d4fd, -.06em 0 #b3d4fd, .09em 0 #b3d4fd, -.09em 0 #b3d4fd, .12em 0 #b3d4fd, -.12em 0 #b3d4fd;
+}
+
+a::-moz-selection {
+  background: #b3d4fd;
+  text-shadow: .03em 0 #b3d4fd, -.03em 0 #b3d4fd, 0 .03em #b3d4fd, 0 -.03em #b3d4fd, .06em 0 #b3d4fd, -.06em 0 #b3d4fd, .09em 0 #b3d4fd, -.09em 0 #b3d4fd, .12em 0 #b3d4fd, -.12em 0 #b3d4fd;
+}
+
+h1 a {
+  background-size: 0 0,0 0,0.07em 0.07em;
+  background-position: 0% 90%, 100% 90%, 0% 98%;
+}
+
+h2 a, h3 a, h4 a, h5 a, h6 a {
+  background-size: 0 0,0 0,0.07em 0.07em;
+  background-position: 0% 90%, 100% 90%, 0% 97%;
+}
+
+a.tag {
+  padding-left: 1.33em;
+  margin-right: 1em;
+  background: url(data:image/svg+xml;base64,PD94bWwgdmVyc2lvbj0iMS4wIiA/PjxzdmcgaGVpZ2h0PSIyMnB4IiB2ZXJzaW9uPSIxLjEiIHZpZXdCb3g9IjAgMCAyMyAyMiIgd2lkdGg9IjIzcHgiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyIgeG1sbnM6c2tldGNoPSJodHRwOi8vd3d3LmJvaGVtaWFuY29kaW5nLmNvbS9za2V0Y2gvbnMiIHhtbG5zOnhsaW5rPSJodHRwOi8vd3d3LnczLm9yZy8xOTk5L3hsaW5rIj48dGl0bGUvPjxkZWZzPjxwYXRoIGQ9Ik0xMy4xMjgwNzM4LC0xLjg2ODA4NjcyIEw2LDQuMjk4NjQzMjcgTDYsMTkuNTY2ODc3NSBDNiwxOS44MzY4NjU4IDYuMjIzNjgyNiwyMC4wNTU3MzQ1IDYuNDk5MDc2ODUsMjAuMDU1NzM0NSBMMjAuNTAwOTIzMiwyMC4wNTU3MzQ1IEMyMC43NzY1NTU3LDIwLjA1NTczNDUgMjEsMTkuODMyOTg3MyAyMSwxOS41NjY4Nzc1IEwyMSw0LjI5ODY0MzI3IEwxMy44NzE5MjYyLC0xLjg2ODA4NjcyIEMxMy42NjY1MTcxLC0yLjA0NTc5MjkgMTMuMzI5MjYwNCwtMi4wNDIxMzk4MSAxMy4xMjgwNzM4LC0xLjg2ODA4NjcyIFogTTEzLjUsNy44MzM1MTIzMiBDMTQuNjA0NTY5Niw3LjgzMzUxMjMyIDE1LjUsNi45NTc5ODAzMiAxNS41LDUuODc3OTU2NzYgQzE1LjUsNC43OTc5MzMyMSAxNC42MDQ1Njk2LDMuOTIyNDAxMjEgMTMuNSwzLjkyMjQwMTIxIEMxMi4zOTU0MzA1LDMuOTIyNDAxMjEgMTEuNSw0Ljc5NzkzMzIxIDExLjUsNS44Nzc5NTY3NiBDMTEuNSw2Ljk1Nzk4MDMyIDEyLjM5NTQzMDUsNy44MzM1MTIzMiAxMy41LDcuODMzNTEyMzIgTDEzLjUsNy44MzM1MTIzMiBaIiBpZD0icGF0aC0xIi8+PC9kZWZzPjxnIGZpbGw9Im5vbmUiIGZpbGwtcnVsZT0iZXZlbm9kZCIgaWQ9Im1pdSIgc3Ryb2tlPSJub25lIiBzdHJva2Utd2lkdGg9IjEiPjxnIGlkPSJjb21tb25fdGFnXzJfZ2VuZXJhbF9wcmljZV9nbHlwaCI+PHVzZSBmaWxsPSIjOTk5OTk5IiBmaWxsLXJ1bGU9ImV2ZW5vZGQiIHRyYW5zZm9ybT0idHJhbnNsYXRlKDEzLjUwMDAwMCwgOS4wMDAwMDApIHJvdGF0ZSg0NS4wMDAwMDApIHRyYW5zbGF0ZSgtMTMuNTAwMDAwLCAtOS4wMDAwMDApICIgeGxpbms6aHJlZj0iI3BhdGgtMSIvPjx1c2UgZmlsbD0ibm9uZSIgeGxpbms6aHJlZj0iI3BhdGgtMSIvPjwvZz48L2c+PC9zdmc+) left center/0.94em no-repeat;
+}
+
+/* RULE */
+
+hr {width: 100%;margin: 24px auto -1px;border: none;border-bottom: 3px double #efefef; padding-bottom: 1.4em;text-shadow: none;box-shadow: none;}
+
+/* CODE */
+
+code {
+  font-family: "IBM Plex Mono", Consolas, "Liberation Mono", Menlo, Courier, monospace;
+  margin: 0;
+  font-size: 85%;
+  background: rgba(236, 236, 236);
+  border-radius: 3px;
+  line-height: 24px;
+}
+
+p code {
+  line-height: 1em;
+  padding: 4px;
+  display: inline-block;
+}
+/*
+p code:before,
+p code:after {
+  letter-spacing: -0.2em;
+  content: "\00a0";
+}*/
+
+pre code {
+  display: block;padding: 12px 18px;
+  margin: -11px -16px -13px -18px;
+  background-color: rgba(236, 236, 236)
+}
+
+/* TABLES */
+
+table {
+  display: block;
+  width: auto;
+  overflow: auto;
+  word-break: normal;
+  word-break: keep-all;
+  border-collapse: collapse;
+  border-spacing: 0;
+  box-sizing: border-box;
+  font-size: 15px;
+  line-height: 24px;
+}
+
+tr {box-sizing: border-box;border-top: 1px solid #ccc;padding: 0}
+th, td {box-sizing: border-box;border: 1px solid #ddd;padding: 5px 12px 6px}
+
+/* LISTS */
+
+ul, ol {
+  margin-left: 0;
+  padding-left: 0;
+  list-style-position: outside;
+  margin-bottom: 24px;
+}
+
+ul {list-style: circle;}
+
+ul ul, ol ul, ol ol, ul ol {margin-left: 1.33em;margin-bottom: 0}
+
+li {margin: 0}
+
+/* IMAGES */
+
+img {vertical-align: middle;max-width: 100%;height: auto;}
+
+.image {
+  position: relative;
+  height: 0;
+  padding: 0 0 35.504201681%;
+  max-width: 100%;margin: 0 auto;display: block;
+}
+
+.image img {width: 100%}
+
+.image_container {display: block}
+
+
+.wide .image_container {margin: 0 auto}
+.wide p {margin-top: 0}
+
+/* VIDEOS & tweets */
+
+iframe {width: 100%;}
+
+/* Only apply vertical margin to direct
+   descendants, prevents multi margins */
+.entry > iframe {margin: 24px 0!important;}
+
+/* TWEETS */
+
+.entry .twitter-tweet {margin-left:-16px!important}
+
+/* MATH */
+
+.katex  {font-size: 1.05em;}
+
+
+
+#logo {
+  font-family: var(--main-font-family);
+  font-weight: 300;
+  letter-spacing: 0.8px;
+  display:block;
+  font-size: 22px;
+  color: #222;
+  position: relative;
+  text-shadow: none;
+  background-image: none;
+}
+
+#logo img {position: absolute;width: 48px;top: 0px;left: -62px;border-radius: 5px;border: 1px solid;}
+
+#logo:hover {color: #555}
+#logo img:hover {opacity: 0.8}
+
+#logo img.rounded {width: 52px;border-radius: 50%;top: -2px;left: -64px}
+#logo img:active {margin-top: 1px}
+
+/* Nav links are underlined which affects their optical lineheight */
+.nav {line-height: 20px;padding-bottom: 4px}
+.nav a {margin-right: 6px;font-size: 14px;background: none;text-shadow: none;}
+
+.nav a[href="/feed.rss"],
+.nav a[href="/search"] {
+  float: right;
+  color: #000;
+  font-weight: 500;
+  font-size: 13px;
+  padding-left: 1.25em;
+  background: url('data:image/svg+xml;base64,PHN2ZyBpZD0iaWNvbi1icm9hZGNhc3QiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyIgeG1sbnM6eGxpbms9Imh0dHA6Ly93d3cudzMub3JnLzE5OTkveGxpbmsiIHg9IjBweCIgeT0iMHB4IiB2aWV3Qm94PSIwIDAgMTIwIDEyMCIgeG1sOnNwYWNlPSJwcmVzZXJ2ZSI+DQo8Y2lyY2xlIGN4PSIxOC4zODUiIGN5PSIxMDEuNjE1IiByPSIxOC4zODUiLz4NCjxnPg0KCTxwYXRoIGQ9Ik0tMS4wMzEsNjFjMzIuNTMzLDAsNTksMjYuNDY4LDU5LDU5cy0yNi40NjcsNTktNTksNTlzLTU5LTI2LjQ2OC01OS01OVMtMzMuNTY0LDYxLTEuMDMxLDYxIE0tMS4wMzEsMzgNCgkJYy00NS4yODgsMC04MiwzNi43MTMtODIsODJzMzYuNzEyLDgyLDgyLDgyczgyLTM2LjcxMyw4Mi04MlM0NC4yNTcsMzgtMS4wMzEsMzhMLTEuMDMxLDM4eiIvPg0KPC9nPg0KPGc+DQoJPHBhdGggZD0iTTAuMTU0LDIzLjA0MWM1My4zNDksMCw5Ni43NSw0My40MDIsOTYuNzUsOTYuNzVzLTQzLjQwMiw5Ni43NS05Ni43NSw5Ni43NWMtNTMuMzQ4LDAtOTYuNzUtNDMuNDAyLTk2Ljc1LTk2Ljc1DQoJCVMtNTMuMTk0LDIzLjA0MSwwLjE1NCwyMy4wNDEgTTAuMTU0LDAuMDQxYy02Ni4xMzYsMC0xMTkuNzUsNTMuNjE1LTExOS43NSwxMTkuNzVzNTMuNjE0LDExOS43NSwxMTkuNzUsMTE5Ljc1DQoJCWM2Ni4xMzUsMCwxMTkuNzUtNTMuNjE1LDExOS43NS0xMTkuNzVTNjYuMjg5LDAuMDQxLDAuMTU0LDAuMDQxTDAuMTU0LDAuMDQxeiIvPg0KPC9nPg0KPC9zdmc+') no-repeat left center / 100%;
+  background-size: 0.88em;
+  opacity: 0.4;
+  margin-left: 1em;
+  background-position-y: 4px;
+}
+
+.nav a[href="/search"] {
+  background-image: url(data:image/svg+xml;base64,PHN2ZyBpZD0iaWNvbi1zZWFyY2giIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyIgeG1sbnM6eGxpbms9Imh0dHA6Ly93d3cudzMub3JnLzE5OTkveGxpbmsiIHg9IjBweCIgeT0iMHB4IiB2aWV3Qm94PSIwIDAgOCA4IiB4bWw6c3BhY2U9InByZXNlcnZlIj4NCjxwYXRoIGlkPSJzZWFyY2giIGQ9Ik03Ljk5LDYuOTI4TDUuODQ3LDQuNzg0YzAuMjg5LTAuNDc2LDAuNDU4LTEuMDMzLDAuNDU4LTEuNjNDNi4zMDUsMS40MTIsNC44OTUsMCwzLjE1MiwwDQoJQzEuNDExLDAsMCwxLjQxMiwwLDMuMTU0YzAsMS43NDEsMS40MTIsMy4xNTEsMy4xNTMsMy4xNTFjMC41OTcsMCwxLjE1NC0wLjE2OSwxLjYzLTAuNDU4bDIuMTQ1LDIuMTQ2TDcuOTksNi45Mjh6IE0xLjIwMywzLjE1NA0KCWMwLjAwMi0xLjA3NywwLjg3NC0xLjk0OSwxLjk1MS0xLjk1MWMxLjA3NiwwLjAwMiwxLjk0OCwwLjg3NCwxLjk0OSwxLjk1MUM1LjEwMSw0LjIzLDQuMjI5LDUuMTAzLDMuMTUzLDUuMTAzDQoJQzIuMDc1LDUuMTAzLDEuMjA1LDQuMjMsMS4yMDMsMy4xNTR6Ii8+DQo8L3N2Zz4=);
+  background-size: 0.94em;
+}
+
+a.feed:hover,
+a.search:hover {opacity: 1}
+
+input#search {
+  font-size: 1.2em;
+  padding: .5em 1em .5em 2.3em;
+  background: url(data:image/svg+xml;base64,PHN2ZyBpZD0iaWNvbi1zZWFyY2giIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyIgeG1sbnM6eGxpbms9Imh0dHA6Ly93d3cudzMub3JnLzE5OTkveGxpbmsiIHg9IjBweCIgeT0iMHB4IiB2aWV3Qm94PSIwIDAgOCA4IiB4bWw6c3BhY2U9InByZXNlcnZlIj4NCjxwYXRoIGlkPSJzZWFyY2giIGQ9Ik03Ljk5LDYuOTI4TDUuODQ3LDQuNzg0YzAuMjg5LTAuNDc2LDAuNDU4LTEuMDMzLDAuNDU4LTEuNjNDNi4zMDUsMS40MTIsNC44OTUsMCwzLjE1MiwwDQoJQzEuNDExLDAsMCwxLjQxMiwwLDMuMTU0YzAsMS43NDEsMS40MTIsMy4xNTEsMy4xNTMsMy4xNTFjMC41OTcsMCwxLjE1NC0wLjE2OSwxLjYzLTAuNDU4bDIuMTQ1LDIuMTQ2TDcuOTksNi45Mjh6IE0xLjIwMywzLjE1NA0KCWMwLjAwMi0xLjA3NywwLjg3NC0xLjk0OSwxLjk1MS0xLjk1MWMxLjA3NiwwLjAwMiwxLjk0OCwwLjg3NCwxLjk0OSwxLjk1MUM1LjEwMSw0LjIzLDQuMjI5LDUuMTAzLDMuMTUzLDUuMTAzDQoJQzIuMDc1LDUuMTAzLDEuMjA1LDQuMjMsMS4yMDMsMy4xNTR6Ii8+DQo8L3N2Zz4=) 1em center/0.8em no-repeat;
+  border-radius: 3em;
+  width: 103.5%;
+  box-sizing: border-box;
+  margin: .33em .66em 2em -1em;
+  border: 1px solid #A1ADB6;
+  font-family: var(--main-font-family);
+}
+
+input#search:focus {
+  outline: none;
+  box-shadow: 0 0 5px rgba(100, 169, 226, 0.51);
+  border: 1px solid #A1ADB6;
+}
+
+::-webkit-input-placeholder {
+   color: #A4A9B0;
+}
+
+:-moz-placeholder { /* Firefox 18- */
+   color: #A4A9B0;
+}
+
+::-moz-placeholder {  /* Firefox 19+ */
+   color: #A4A9B0;
+}
+
+:-ms-input-placeholder {
+   color: #A4A9B0;
+}
+
+.date {margin-top: 1rem;background: none;text-shadow: none;}
+.date:empty {display: none;}
+
+/* Reset the spacing when date is not followed by an h1 tag */
+.entry .date + p,
+.entry .date + ul,
+.entry .date + ol {position: relative;top: 9px;padding-bottom: 9px}
+
+.entry .date + .wide {position: relative;top: 2.66em;padding-bottom: 2.66em}
+.entry .date + .wide.right {position: relative;top: 0.66em;padding-bottom: 0.66em}
+.entry .date + h2,
+.entry .date + h3,
+.entry .date + h4,
+.entry .date + h5,
+.entry .date + h6
+ {position: relative;top: 9px;}
+
+/* Pagination */
+.pagination {
+  text-align: center;
+  margin: 72px 0 144px;
+  font-size: 14px;color: #999
+}
+
+.pagination a {margin: 0 1em;background: none}
+
+.previousEntry,
+.nextEntry {
+  text-decoration: none;
+  background: none;
+  text-shadow: none;
+  font-size: 0.88em;
+  line-height: 1.33em;
+  width: 48%;
+  margin: 1em 0 6em 2%;
+  color: #000;
+  display: block;
+  float: left;
+}
+
+.previousEntry {margin: 1em 2% 6em 0;}
+
+.adjacent a h5 {margin-bottom: 3px;color: #000}
+.adjacent a .summary {color: #6B6B6B;font-size: 13px;line-height: 17px;}
+
+.previousEntry .title,
+.nextEntry .title {
+  display: block;
+  font-size: 1.156em;
+  font-family: var(--main-font-family);
+  line-height: 20px;
+  margin-bottom: 3px
+}
+
+@media screen and (max-width: 976px) {
+
+  .main {max-width: 600px;min-width: 0}
+
+  .entry .margin {position: relative;top: auto;left: auto;right: auto;bottom: auto;}
+
+  .entry .margin.right {
+    float: right;
+  }
+
+  .entry .margin.left {
+    text-align: left;
+    display: block;
+    float: left;
+  }
+
+  .entry .date {width: 100%;}
+
+  .entry .margin .caption,
+  .entry .margin p {margin-bottom: 6px;text-align: left;}
+
+  .wide, .wide.left, .wide.right {width: 100%;margin: 0}
+  .wide.left .caption {margin-left: 0}
+
+  .date {position: absolute;top: -24px;left: 0;text-align: left;margin: 0}
+}
+
+@media screen and (max-width: 730px) {
+  /*  .nav, #logo {margin-left: 60px} */
+  ul, li {margin-left: 24px}
+  ul ul, ol ul, ol ol, ul ol {margin-left: 0}
+  .nav .right {clear: both;float: none;margin-top: 3px}
+  a.search {margin-left: 0}
+}
+
+@media screen and (max-width: 400px) {
+  .entry .twitter-tweet {margin-left: 0!important}
+  .header {margin: 9px auto -12px}
+}
+
+/* The theme used by the syntax highlighting app */
+.hljs {display: block;overflow-x: auto;}
+.hljs-comment, .hljs-quote, .hljs-variable {color: #008000;}
+.hljs-keyword, .hljs-selector-tag, .hljs-built_in, .hljs-name, .hljs-tag {color: #00f;}
+.hljs-string, .hljs-title, .hljs-section, .hljs-attribute, .hljs-literal, .hljs-template-tag, .hljs-template-variable, .hljs-type, .hljs-addition {color: #a31515;}
+.hljs-deletion, .hljs-selector-attr, .hljs-selector-pseudo, .hljs-meta {color: #2b91af;}
+.hljs-doctag {color: #808080;}
+.hljs-attr {color: #f00;}
+.hljs-symbol, .hljs-bullet, .hljs-link {color: #00b0e8;}
+.hljs-emphasis {font-style: italic;}
+.hljs-strong {font-weight: bold;}
+    </style>
+</head>  <body>
+<div class="container header">
+  <div class="main">
+    <!--
+    <a id="logo" href="/">
+      Atif Afzal
+    </a>
+	-->
+    <div class="nav">
+      <a href="&#x2F;" title="Home">Home</a>
+      <a href="&#x2F;archives" title="Archives">Archives</a>
+      <a href="&#x2F;search" title="Search">Search</a>
+      <a href="&#x2F;feed.rss" title="Feed">Feed</a>
+      <a href="&#x2F;about" title="About">About</a>
+    </div>
+  </div>
+</div>    <div class="container">
+      <div class="main">
+        <div class="entry">
+          <a class="small date left margin" href="&#x2F;optimizing-netlify">September 6, 2021</a>
+
+          <h1 id="optimizing-netlify">Optimizing Netlify</h1>
+<p>We’ll optimize Netlify’s Single Page web application load time.</p>
+<p>Log in to <a href="https://netlify.com" class="uri" target="_blank">https://netlify.com</a>.</p>
+<p><img src="/images/2c1d9195-c287-4dd0-a8e9-c091a90385a6.png" width="1500" height="954"></p>
+<p>You’ll be redirected to <a href="https://app.netlify.com" class="uri" target="_blank">https://app.netlify.com</a> after logging in. This is the SPA we’ll be optimizing.</p>
+<p><img src="/images/f137516e-7d80-4b64-ad8a-0c8ca5f81487.png" width="1500" height="954"></p>
+<p>Open Chrome DevTools (cmd + options + i)<br>
+Select <code>Performance</code> Panel<br>
+</p>
+<p>Make sure <code>Screenshot</code> option selected (useful to check when app was loaded)</p>
+<p><img src="/images/a26c050a-8ca5-47c9-9249-f41a56d80dde.png" width="1500" height="954"></p>
+<p>Start recording and refresh the page. Stop the recording when the page has loaded. We have the DevTools open in detached mode to view the timeline.</p>
+<p><img src="/images/111e10b7-ca15-4349-82c1-3baadc933630.png" width="1500" height="954"></p>
+<p>On closer look in the network section, it looks like the network call <code>api.netlify.com/api/v1/user</code> is duplicated. <code>api.segment.io/v1/p</code> is also duplicated but that doesn’t look much interesting.</p>
+<p><img src="/images/0fca616a-5007-4cc2-968f-ca58346745e2.png" width="635" height="376"></p>
+<p>We go to the Network panel of DevTools to check the details about this <code>user</code> api.</p>
+<p><img src="/images/122b4e82-2097-4ad0-b0de-0538e5e8dda5.png" width="792" height="629"></p>
+<p>Now we check the call stack for both these calls.</p>
+<p><img src="/images/a820bc29-ef17-4d96-b9a5-23e336ded248.png" width="931" height="987"></p>
+<p><img src="/images/c125f121-5b54-4ed7-8202-629f6961214e.png" width="931" height="987"></p>
+<p>Both call stack look pretty similar with one difference.</p>
+<pre><code class="hljs diff"><span class="hljs-deletion">- App.js:432</span>
+<span class="hljs-addition">+ App.js:459</span></code></pre>
+<p>Different lines in the same file:</p>
+<p><img src="/images/fd1e6d5c-707c-4ac9-89bd-b048bb661d72.png" width="1500" height="954"></p>
+<p>We’re lucky Netlify has source-maps enabled in public, otherwise we’d see minified code.</p>
+<p>The first <code>useEffect</code> is meant to run when the app loads for first time, at this time <code>userId</code> is not defined.</p>
+<p>The second <code>useEffect</code> is running again when <code>userId</code> is not defined. It should be:</p>
+<pre><code class="hljs js">useEffect(<span class="hljs-function">() =&gt;</span> {
+  <span class="hljs-keyword">if</span> (userId) {
+    load(props);
+  }
+}, [userId]);</code></pre>
+<p><strong>This will fix the api call being made twice.</strong></p>
+<p>Now back to the timeline, I see an opportunity for improving the app load time.</p>
+<p><img src="/images/28530f9b-596c-4427-9d11-dc49935aca89.png" width="1500" height="954"></p>
+<p>Looks like the main thread is not doing much while the network calls are being made. The current process is in series: the JavaScript runs and this code makes some network calls. We can do these in parallel because the network calls are handled by browser in a separate thread.</p>
+<p>To do this we’d normally need the source to build the code but we’ll be using <a href="https://developer.chrome.com/blog/new-in-devtools-65/#overrides" target="_blank">Chrome Local Overrides</a>.</p>
+<p>I have the main html file <code>overview</code> and main js file <code>app.bundle.js</code> overridden with my local copy.</p>
+<p><img src="/images/0092f1ed-6ae0-4bc5-907d-a59ef751323c.png" width="416" height="359"></p>
+<p>I found a place where I’ll short-circuit the api call for <code>user</code>:</p>
+<p><img src="/images/db8f5341-1c43-44a5-9151-fa8569db82ce.png" width="632" height="377"></p>
+<p>Updating this to</p>
+<pre><code class="hljs js">  <span class="hljs-function"><span class="hljs-title">user</span>(<span class="hljs-params"></span>)</span> {
+    <span class="hljs-keyword">return</span> <span class="hljs-built_in">window</span>.userPromise || <span class="hljs-built_in">this</span>.request(<span class="hljs-string">&#x27;/user&#x27;</span>);
+  }</code></pre>
+<p>Now we’ll define <code>window.userPromise</code> in the main HTML file because we want this api call made ASAP. We’ll add a new <code>&lt;script&gt;</code> tag and add our <code>/user</code> api call with the correct access token from the local storage.</p>
+<p><img src="/images/32f3318a-6d9e-4b23-a7a6-4aaab08cf674.png" width="1500" height="954"></p>
+<p>And it works, we now have an api call at the start of page, in parallel as the main JavaScript code runs.</p>
+<p><img src="/images/4ebb7afe-64c5-4490-a991-a15fa732452c.png" width="583" height="581"></p>
+<p>But there are 2 more network calls which are blocking the app render, let’s optimize them in the same way.</p>
+<p><img src="/images/61866cba-07bf-4bbc-aa03-4545934d1cf1.png" width="816" height="52"></p>
+<p>We now have a busy main thread, networks calls and JavaScript code are being run in parallel.</p>
+<p><img src="/images/891b1b3b-683c-4e4a-817a-75e2932a80e2.png" width="678" height="781"></p>
+<p>For my system and network, I could see around <strong>40% reduction in app load time from 2000ms to 1200ms</strong>.</p>
+<p>This is a common scenario in SPA using bundling systems like Webpack, API calls are made after the code is run. Early API calls is a simple method to improve app load time for a lot of web apps.</p>
+
+
+          <div class="clear"></div>
+          <div class="clear"></div>
+
+        </div>
+<!-- <script src="/script.js?cache=1683965176973&amp;extension=.js" type="text/javascript"></script> -->
+      </div>
+    </div>
+  </body>
+</html>
