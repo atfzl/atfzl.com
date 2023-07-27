@@ -13,7 +13,7 @@ iTerm triggers can be used for converting text in your terminal to URLs and make
 Go to 
 `iTerm -> Preferences -> Profiles -> Advanced -> Triggers Edit`
 
-![iterm preference](./_iterm_screenshot.png)
+![iterm preference](images/_iterm_screenshot.png)
 
 Add an entry in the table
 
@@ -23,6 +23,6 @@ Action:             Make Hyperlink
 Parameters:         https://jira.yourhost.com/jira/browse/\0¯
 ```
 
-![table](./_table.png)
+![table](images/_table.png)
 
 Now whenever there is a pattern with `JIRA-1234`, it will become a clickable hyperlink.
