@@ -20,7 +20,7 @@ Add an entry in the table
 ```
 Regular Expression: (?i)JIRA-\d+
 Action:             Make Hyperlink
-Parameters:         https://jira.yourhost.com/jira/browse/\0¯
+Parameters:         https://jira.yourhost.com/jira/browse/\0
 ```
 
 ![table](images/_table.png)
