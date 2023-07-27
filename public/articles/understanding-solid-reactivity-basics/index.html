@@ -1,0 +1,374 @@
+<!DOCTYPE html>
+<html lang="en-us">
+
+<head>
+  <meta http-equiv="X-Clacks-Overhead" content="GNU Terry Pratchett" />
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Understanding Solid: Reactivity Basics | Atif Afzal</title>
+<meta name="title" content="Understanding Solid: Reactivity Basics" />
+<meta name="description" content="Understanding Solid: Reactivity Basics Solid is a Reactive library for creating user interfaces. Solid updates the DOM only where it is required, without using Virtual DOM. Solid is fast.
+To understand Solid, first we have to understand its Reactive ideology.
+Let’s take an example of a simple auto updating counter to show how the code looks like and explain how it works under the hood.
+First a counter without a UI: Solid Counter - CodeSandbox" />
+<meta name="keywords" content="" />
+
+
+<meta property="og:title" content="Understanding Solid: Reactivity Basics" />
+<meta property="og:description" content="Understanding Solid: Reactivity Basics Solid is a Reactive library for creating user interfaces. Solid updates the DOM only where it is required, without using Virtual DOM. Solid is fast.
+To understand Solid, first we have to understand its Reactive ideology.
+Let’s take an example of a simple auto updating counter to show how the code looks like and explain how it works under the hood.
+First a counter without a UI: Solid Counter - CodeSandbox" />
+<meta property="og:type" content="article" />
+<meta property="og:url" content="https://atfzl.com/articles/understanding-solid-reactivity-basics/" /><meta property="article:section" content="articles" />
+<meta property="article:published_time" content="2019-10-10T00:00:00+00:00" />
+<meta property="article:modified_time" content="2019-10-10T00:00:00+00:00" />
+
+
+
+<meta name="twitter:card" content="summary"/>
+<meta name="twitter:title" content="Understanding Solid: Reactivity Basics"/>
+<meta name="twitter:description" content="Understanding Solid: Reactivity Basics Solid is a Reactive library for creating user interfaces. Solid updates the DOM only where it is required, without using Virtual DOM. Solid is fast.
+To understand Solid, first we have to understand its Reactive ideology.
+Let’s take an example of a simple auto updating counter to show how the code looks like and explain how it works under the hood.
+First a counter without a UI: Solid Counter - CodeSandbox"/>
+
+
+
+<meta itemprop="name" content="Understanding Solid: Reactivity Basics">
+<meta itemprop="description" content="Understanding Solid: Reactivity Basics Solid is a Reactive library for creating user interfaces. Solid updates the DOM only where it is required, without using Virtual DOM. Solid is fast.
+To understand Solid, first we have to understand its Reactive ideology.
+Let’s take an example of a simple auto updating counter to show how the code looks like and explain how it works under the hood.
+First a counter without a UI: Solid Counter - CodeSandbox"><meta itemprop="datePublished" content="2019-10-10T00:00:00+00:00" />
+<meta itemprop="dateModified" content="2019-10-10T00:00:00+00:00" />
+<meta itemprop="wordCount" content="709">
+<meta itemprop="keywords" content="" />
+<meta name="referrer" content="no-referrer-when-downgrade" />
+
+  <style>
+  :root {
+    --width: 640px;
+    --font-main: Verdana, sans-serif;
+    --font-secondary: Verdana, sans-serif;
+    --font-scale: 1em;
+    --background-color: #fff;
+    --heading-color: #222;
+    --text-color: #444;
+    --link-color: #3273dc;
+    --visited-color: #8b6fcb;
+    --code-background-color: #ececec;
+    --code-color: #222;
+    --blockquote-color: #222;
+  }
+
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --background-color: #01242e;
+      --heading-color: #eee;
+      --text-color: #ddd;
+      --link-color: #8cc2dd;
+      --visited-color: #8b6fcb;
+      --code-background-color: #000;
+      --code-color: #ddd;
+      --blockquote-color: #ccc;
+    }
+  }
+
+  body {
+    font-family: var(--font-secondary);
+    font-size: var(--font-scale);
+    margin: auto;
+    padding: 20px;
+    max-width: var(--width);
+    text-align: left;
+    background-color: var(--background-color);
+    word-wrap: break-word;
+    overflow-wrap: break-word;
+    line-height: 1.5;
+    color: var(--text-color);
+  }
+
+  h1,
+  h2,
+  h3,
+  h4,
+  h5,
+  h6 {
+    font-family: var(--font-main);
+    color: var(--heading-color);
+  }
+
+  a {
+    color: var(--link-color);
+    cursor: pointer;
+    text-decoration: none;
+  }
+
+  a:hover {
+    text-decoration: underline;
+  }
+
+  nav a {
+    margin-right: 8px;
+  }
+
+  strong,
+  b {
+    color: var(--heading-color);
+  }
+
+  button {
+    margin: 0;
+    cursor: pointer;
+  }
+
+  main {
+    line-height: 1.6;
+  }
+
+  table {
+    width: 100%;
+  }
+
+  hr {
+    border: 0;
+    border-top: 1px dashed;
+  }
+
+  img {
+    max-width: 100%;
+  }
+
+  code {
+    font-size: 0.85em;
+    font-family: Menlo, Courier, monospace;
+    padding: 2px;
+    background-color: var(--code-background-color);
+    color: var(--code-color);
+    border-radius: 3px;
+  }
+
+  pre {
+    background-color: var(--code-background-color);
+    padding: 12px;
+    overflow-x: auto;
+  }
+
+  pre code {
+    padding: 0;
+  }
+
+  blockquote {
+    border-left: 1px solid #999;
+    color: var(--code-color);
+    padding-left: 20px;
+    font-style: italic;
+  }
+
+  footer {
+    padding: 25px 0;
+    text-align: center;
+  }
+
+  .title:hover {
+    text-decoration: none;
+  }
+
+  .title h1 {
+    font-size: 1.5em;
+  }
+
+  .inline {
+    width: auto !important;
+  }
+
+  .highlight,
+  .code {
+    padding: 1px 15px;
+    background-color: var(--code-background-color);
+    color: var(--code-color);
+    border-radius: 3px;
+    margin-block-start: 1em;
+    margin-block-end: 1em;
+    overflow-x: auto;
+  }
+
+   
+  ul.blog-posts {
+    list-style-type: none;
+    padding: unset;
+  }
+
+  ul.blog-posts li {
+    display: flex;
+  }
+
+  ul.blog-posts li span {
+    flex: 0 0 130px;
+  }
+
+  ul.blog-posts li a:visited {
+    color: var(--visited-color);
+  }
+</style>
+</head>
+
+<body>
+  <header><a href="/" class="title">
+  <h2>Atif Afzal</h2>
+</a>
+<nav><a href="/">Home</a>
+
+<a href="/articles/">Articles</a>
+
+<a href="/snippets/">Snippets</a>
+
+
+</nav>
+</header>
+  <main>
+
+<p style="margin-bottom:-1.2em;opacity: 0.7;">
+  <i>
+    <time datetime='2019-10-10' pubdate>
+      10 Oct, 2019
+    </time>
+  </i>
+</p>
+
+<content>
+  <h1 id="understanding-solid-reactivity-basics">Understanding Solid: Reactivity Basics</h1>
+<p><a href="https://github.com/ryansolid/solid">Solid</a> is a Reactive library for creating user interfaces. Solid updates the DOM only where it is required, without using Virtual DOM. Solid is <a href="https://krausest.github.io/js-framework-benchmark/current.html">fast</a>.</p>
+<p>To understand Solid, first we have to understand its Reactive ideology.</p>
+<p>Let’s take an example of a simple auto updating counter to show how the code looks like and explain how it works under the hood.</p>
+<p>First a counter without a UI: <a href="https://codesandbox.io/s/solid-counter-qsjju">Solid Counter - CodeSandbox</a></p>
+<pre><code class="language-js">import { createState, createEffect } from 'solid-js';
+
+const [state, setState] = createState({ count: 0 });
+
+setInterval(() =&gt; {
+  setState({ count: state.count + 1 });
+}, 1000);
+
+createEffect(() =&gt; {
+  console.log(state.count);
+});
+</code></pre>
+<p>This code looks too much similar to React hooks and it is actually inspired from React hooks. But there is a major difference, contrary to React, this code will not run again and again top to down like in a React component. Instead we have code blocks which are run whenever their dependencies are updated.</p>
+<h2 id="createeffect">createEffect</h2>
+<p>Whenever the value of  <code>state.count</code> is updated the code block passed to <code>createEffect</code> is called which in turn will call <code>console.log</code> every 1 second.</p>
+<pre><code>0
+1
+2
+3
+4
+...
+</code></pre>
+<p>How does <code>createEffect</code> knows when to call this function whenever <code>state.count</code> changes ?</p>
+<p>The answer lies in Javascript <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Proxy">Proxy</a>.</p>
+<p>The state returned by createState is actually a proxy object, it has setter and getter traps for all properties on the original object.</p>
+<p>Whenever a value is updated on this object, the setter is called. And whenever a value is accessed, the getter is called.</p>
+<p>Let’s try to have a feel with some rough pseudocode:</p>
+<pre><code class="language-js">let activeBlock;
+
+// not real code, rough estimation
+state.count = {
+  _blocks: [],
+  getter() {
+    if (activeBlock) {
+      this._blocks.push(activeBlock);
+    }
+    ...
+  }
+  setter() {
+    if (this._blocks.length) {
+      this._blocks.forEach(block =&gt; block());
+    }
+    ...
+  }
+}
+
+function createEffect(f) {
+  activeBlock = f;
+  f();
+  activeBlock = undefined;
+}
+
+...
+
+createEffect(() =&gt; {
+  console.log(state.count);
+});
+</code></pre>
+<p>Let’s call the function passed to createEffect as <code>f</code>.</p>
+<p>When we call createEffect, first we save <code>f</code> in <code>activeBlock</code> variable and then run <code>f</code>. Then whenever a getter is hit, we save <code>activeBlock</code> with the current property so that the dependent blocks can be run, when there is a hit to its setter.</p>
+<p>In our counter example, <code>f</code> is the block with <code>console.log(state.count)</code> in it. For the first time when <code>createEffect</code> calls <code>f</code>, it saves <code>f</code> in <code>activeBlock</code> variable. Then it runs <code>f</code>.</p>
+<p>Now when <code>f</code> runs, it encounters <code>state.count</code> and its getter is executed. Then <code>f</code> is pushed to <code>this._blocks</code>.</p>
+<p>If we also had some other block with <code>state.count</code>, its reference would also be pushed in the <code>this._blocks</code> array.</p>
+<pre><code class="language-js">createEffect(() =&gt; {
+  console.log('2 x Counter = ', state.count * 2);
+});
+</code></pre>
+<p>If in the future <code>state.count</code> is updated, its setter will be triggered and it will execute all its saved blocks.</p>
+<p>In this way we do not need to explicitly define what we have to track, and the blocks would be run whenever anything in the block changes.</p>
+<h2 id="setstate-instead-of-setter">setState instead of setter</h2>
+<p>Solid emphasizes uni-directional data flow like React. So instead of directly updating the value of state, <code>setState</code> must be used to trigger the setter.</p>
+<h2 id="reactive-html-element-with-solid">Reactive html element with solid</h2>
+<p>Now that we know the basics of <code>createEffect</code> and how its works, let&rsquo;s use <code>createEffect</code> to update an HTML element.</p>
+<p>Counter with a UI element: <a href="https://codesandbox.io/s/solid-counter-kpjok">Solid Counter - CodeSandbox</a></p>
+<pre><code class="language-js">const [state, setState] = createState({ count: 0 });
+
+setInterval(() =&gt; {
+  setState({ count: state.count + 1 });
+}, 1000);
+
+const el = document.createElement('div');
+
+document.body.appendChild(el);
+
+createEffect(() =&gt; {
+  el.innerText = state.count;
+});
+</code></pre>
+<p>So we are using createEffect to update the DOM text.</p>
+<p>Similarly we can update className, style and other attributes reactively:</p>
+<h4 id="classname">className</h4>
+<pre><code class="language-js">createEffect(() =&gt; {
+  el.className = state.count % 2 === 0 ? &quot;even&quot; : &quot;odd&quot;;
+});
+</code></pre>
+<h4 id="style">style</h4>
+<p>we are using Object.assign because <code>=</code> does not work with style attribute.</p>
+<pre><code class="language-js">createEffect(() =&gt; {
+  Object.assign(
+    el.style,
+    { color: state.count % 2 === 0 ? &quot;black&quot; : &quot;white&quot; }
+  );
+});
+</code></pre>
+<h4 id="data-">data-*</h4>
+<pre><code class="language-js">createEffect(() =&gt; {
+  el.setAttribute(
+    &quot;data-test&quot;, 
+    state.count % 2 === 0 ? &quot;even&quot; : &quot;odd&quot;
+  );
+});
+</code></pre>
+<p>These were the basic reactive ideas needed to understand how solid works under the hood. Next post will cover <code>jsx</code> in solid.</p>
+<hr>
+<p>This is the first blog post of series: <code>Understanding Solid</code>.</p>
+<p>Next post <a href="https://atfzl.com/understanding-solid-jsx">https://atfzl.com/understanding-solid-jsx</a></p>
+
+</content>
+<p>
+  
+</p>
+
+  </main>
+  <footer>
+</footer>
+
+    
+</body>
+
+</html>

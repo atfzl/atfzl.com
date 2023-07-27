@@ -1,0 +1,115 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>Atif Afzal</title>
+    <link>https://atfzl.com/</link>
+    <description>Recent content on Atif Afzal</description>
+    <generator>Hugo -- gohugo.io</generator>
+    <language>en-us</language>
+    <lastBuildDate>Wed, 08 Mar 2023 00:00:00 +0000</lastBuildDate><atom:link href="https://atfzl.com/index.xml" rel="self" type="application/rss+xml" />
+    <item>
+      <title>JavaScript Event Loop: Much more than you wanted to know</title>
+      <link>https://atfzl.com/articles/javascript-event-loop-much-more-than-you-wanted-to-know/</link>
+      <pubDate>Wed, 08 Mar 2023 00:00:00 +0000</pubDate>
+      
+      <guid>https://atfzl.com/articles/javascript-event-loop-much-more-than-you-wanted-to-know/</guid>
+      <description>JavaScript Event Loop: Much more than you wanted to know Note: We&amp;rsquo;ll cover the event loop in context of browsers and not other runtimes like Node.js
+The event loop is a mechanism/algorithm/set of rules that specifies how asynchronous code is handled in JavaScript. This is important because JavaScript is single threaded, it can run one thing at a time. When the main thread is busy, we queue the pending events and these are run later when the main thread is available.</description>
+    </item>
+    
+    <item>
+      <title>Making Cypress Integration Tests Less Flaky</title>
+      <link>https://atfzl.com/articles/making-cypress-integration-tests-less-flaky/</link>
+      <pubDate>Tue, 01 Feb 2022 00:00:00 +0000</pubDate>
+      
+      <guid>https://atfzl.com/articles/making-cypress-integration-tests-less-flaky/</guid>
+      <description>Making Cypress Integration Tests Less Flaky TL;DR Interleave Cypress commands like .find, .get, .first, .eq, .type with Cypress assertions like .should, .contains. Cypress runs only the last command when retrying. Interleaving act as guards to ensure we reach to the correct element which also helps avoiding detached parent errors.
+Don&amp;rsquo;t just wait for network calls, wait for the UI to be updated with the network data. If a network call has finished, it doesn&amp;rsquo;t mean the UI would be updated immediately.</description>
+    </item>
+    
+    <item>
+      <title>Optimizing Netlify</title>
+      <link>https://atfzl.com/articles/optimizing-netlify/</link>
+      <pubDate>Mon, 06 Sep 2021 00:00:00 +0000</pubDate>
+      
+      <guid>https://atfzl.com/articles/optimizing-netlify/</guid>
+      <description>Optimizing Netlify We&amp;rsquo;ll optimize Netlify&amp;rsquo;s Single Page web application load time.
+Log in to https://netlify.com.
+You&amp;rsquo;ll be redirected to https://app.netlify.com after logging in. This is the SPA we&amp;rsquo;ll be optimizing.
+Open Chrome DevTools (cmd + options + i)
+Select Performance Panel\
+Make sure Screenshot option selected (useful to check when app was loaded)
+Start recording and refresh the page. Stop the recording when the page has loaded. We have the DevTools open in detached mode to view the timeline.</description>
+    </item>
+    
+    <item>
+      <title>Don&#39;t attach tooltips to document.body</title>
+      <link>https://atfzl.com/articles/don-t-attach-tooltips-to-document-body/</link>
+      <pubDate>Wed, 10 Mar 2021 00:00:00 +0000</pubDate>
+      
+      <guid>https://atfzl.com/articles/don-t-attach-tooltips-to-document-body/</guid>
+      <description>Don&amp;rsquo;t attach tooltips to document.body TL;DR Instead of attaching tooltips directly to document.body, attach them to a predefined div in document.body.
+BAD
+&amp;lt;body&amp;gt; &amp;lt;!-- temporary div, vanishes when tooltips vanishes --&amp;gt; &amp;lt;div&amp;gt;my tooltip&amp;lt;/div&amp;gt; &amp;lt;body&amp;gt; GOOD
+&amp;lt;body&amp;gt; &amp;lt;!-- this div stays forever, just for attaching tooltips --&amp;gt; &amp;lt;div id=&amp;quot;tooltips-container&amp;quot;&amp;gt; &amp;lt;!-- temporary div, vanishes when tooltips vanishes --&amp;gt; &amp;lt;div&amp;gt;my tooltip&amp;lt;/div&amp;gt; &amp;lt;/div&amp;gt; &amp;lt;body&amp;gt; Introduction Tooltips in our app were taking &amp;gt;80ms. And during this time, the main thread was blocked, you couldn&amp;rsquo;t interact with anything.</description>
+    </item>
+    
+    <item>
+      <title>Understanding Solid: JSX</title>
+      <link>https://atfzl.com/articles/understanding-solid-jsx/</link>
+      <pubDate>Mon, 25 Nov 2019 00:00:00 +0000</pubDate>
+      
+      <guid>https://atfzl.com/articles/understanding-solid-jsx/</guid>
+      <description>Understanding Solid: JSX Solid uses JSX to render vanilla DOM elements. In React the &amp;lt;div /&amp;gt; compiles to React.createElement(&#39;div&#39;) but in Solid you could say it compiles to document.createElement(&#39;div&#39;) (actually it uses HTML templates, more on this ahead).
+Hello World component: function HelloWorld() { return ( &amp;lt;div&amp;gt; Hello World &amp;lt;/div&amp;gt; ); } This will (conceptually) compile to:
+function HelloWorld() { const el$ = document.createElement(&#39;div&#39;); el$.innerText = &#39;Hello World&#39;; return el$; } Actually solid uses HTML template element because it is more performant for creating new instances from same template.</description>
+    </item>
+    
+    <item>
+      <title>Using iTerm triggers</title>
+      <link>https://atfzl.com/snippets/using-iterm-triggers/</link>
+      <pubDate>Tue, 19 Nov 2019 00:00:00 +0000</pubDate>
+      
+      <guid>https://atfzl.com/snippets/using-iterm-triggers/</guid>
+      <description>Using iTerm triggers iTerm triggers can be used for converting text in your terminal to URLs and make them clickable. This is useful for creating JIRA issue links whenever there is a JIRA-1234 like pattern.
+Steps: Go to iTerm -&amp;gt; Preferences -&amp;gt; Profiles -&amp;gt; Advanced -&amp;gt; Triggers Edit
+Add an entry in the table
+Regular Expression: (?i)JIRA-\d+ Action: Make Hyperlink Parameters: https://jira.yourhost.com/jira/browse/\0 Now whenever there is a pattern with JIRA-1234, it will become a clickable hyperlink.</description>
+    </item>
+    
+    <item>
+      <title>Use emacs key bindings everywhere</title>
+      <link>https://atfzl.com/snippets/use-emacs-key-bindings-everywhere/</link>
+      <pubDate>Tue, 12 Nov 2019 00:00:00 +0000</pubDate>
+      
+      <guid>https://atfzl.com/snippets/use-emacs-key-bindings-everywhere/</guid>
+      <description>Use emacs key bindings everywhere I am used to emacs keybinding.
+My caps lock is mapped to ctrl to avoid emacs pinky.
+I am also used to making movements the emacs way , i.e.,
+ctrl+f: right arrow ctrl+b: left arrow ctrl+p: up arrow ctrl+n: down arrow I have also remapped Ctrl+g to escape because I despise the escape key in the MacBook Pro touch bar.
+Mac supports this keybinding in most applications but these do not work for all applications.</description>
+    </item>
+    
+    <item>
+      <title>Understanding Solid: Reactivity Basics</title>
+      <link>https://atfzl.com/articles/understanding-solid-reactivity-basics/</link>
+      <pubDate>Thu, 10 Oct 2019 00:00:00 +0000</pubDate>
+      
+      <guid>https://atfzl.com/articles/understanding-solid-reactivity-basics/</guid>
+      <description>Understanding Solid: Reactivity Basics Solid is a Reactive library for creating user interfaces. Solid updates the DOM only where it is required, without using Virtual DOM. Solid is fast.
+To understand Solid, first we have to understand its Reactive ideology.
+Let’s take an example of a simple auto updating counter to show how the code looks like and explain how it works under the hood.
+First a counter without a UI: Solid Counter - CodeSandbox</description>
+    </item>
+    
+    <item>
+      <title>Using flow and eslint in Emacs</title>
+      <link>https://atfzl.com/snippets/using-flow-and-eslint-in-emacs/</link>
+      <pubDate>Sun, 06 Nov 2016 00:00:00 +0000</pubDate>
+      
+      <guid>https://atfzl.com/snippets/using-flow-and-eslint-in-emacs/</guid>
+      <description>Using flow and eslint in Emacs (require &#39;company) (require &#39;web-mode) (require &#39;flycheck) (require &#39;flycheck-flow) ;; flow auto complete ;; skip this if you don&#39;t use company-mode (eval-after-load &#39;company &#39;(add-to-list &#39;company-backends &#39;company-flow)) ;; add eslint and flow checkers to flycheck (flycheck-add-mode &#39;javascript-eslint &#39;web-mode) (flycheck-add-mode &#39;javascript-flow &#39;web-mode) ;;disable jshint since we prefer eslint checking (setq-default flycheck-disabled-checkers (append flycheck-disabled-checkers &#39;(javascript-jshint))) (defun jsWithEslint () &amp;quot;eslint for js files&amp;quot; (interactive) (web-mode) (web-mode-set-content-type &amp;quot;jsx&amp;quot;) (flycheck-disable-checker &#39;javascript-flow) (flycheck-select-checker &#39;javascript-eslint) (flycheck-mode)) (defun jsWithEslintFlow () &amp;quot;flow and eslint for js files&amp;quot; (interactive) (web-mode) (web-mode-set-content-type &amp;quot;jsx&amp;quot;) (flycheck-select-checker &#39;javascript-eslint) (flycheck-add-next-checker &#39;javascript-eslint &#39;javascript-flow) (flycheck-mode)) ;; set key shortcuts if you want ;; (global-set-key (kbd &amp;quot;C-c j&amp;quot;) &#39;jsWithEslint) ;; (global-set-key (kbd &amp;quot;C-c f&amp;quot;) &#39;jsWithEslintFlow) (add-to-list &#39;auto-mode-alist &#39;(&amp;quot;\\.</description>
+    </item>
+    
+  </channel>
+</rss>

@@ -1,0 +1,670 @@
+<!DOCTYPE html>
+<html lang="en-us">
+
+<head>
+  <meta http-equiv="X-Clacks-Overhead" content="GNU Terry Pratchett" />
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>JavaScript Event Loop: Much more than you wanted to know | Atif Afzal</title>
+<meta name="title" content="JavaScript Event Loop: Much more than you wanted to know" />
+<meta name="description" content="JavaScript Event Loop: Much more than you wanted to know Note: We&rsquo;ll cover the event loop in context of browsers and not other runtimes like Node.js
+The event loop is a mechanism/algorithm/set of rules that specifies how asynchronous code is handled in JavaScript. This is important because JavaScript is single threaded, it can run one thing at a time. When the main thread is busy, we queue the pending events and these are run later when the main thread is available." />
+<meta name="keywords" content="" />
+
+
+<meta property="og:title" content="JavaScript Event Loop: Much more than you wanted to know" />
+<meta property="og:description" content="JavaScript Event Loop: Much more than you wanted to know Note: We&rsquo;ll cover the event loop in context of browsers and not other runtimes like Node.js
+The event loop is a mechanism/algorithm/set of rules that specifies how asynchronous code is handled in JavaScript. This is important because JavaScript is single threaded, it can run one thing at a time. When the main thread is busy, we queue the pending events and these are run later when the main thread is available." />
+<meta property="og:type" content="article" />
+<meta property="og:url" content="https://atfzl.com/articles/javascript-event-loop-much-more-than-you-wanted-to-know/" /><meta property="article:section" content="articles" />
+<meta property="article:published_time" content="2023-03-08T00:00:00+00:00" />
+<meta property="article:modified_time" content="2023-03-08T00:00:00+00:00" />
+
+
+
+<meta name="twitter:card" content="summary"/>
+<meta name="twitter:title" content="JavaScript Event Loop: Much more than you wanted to know"/>
+<meta name="twitter:description" content="JavaScript Event Loop: Much more than you wanted to know Note: We&rsquo;ll cover the event loop in context of browsers and not other runtimes like Node.js
+The event loop is a mechanism/algorithm/set of rules that specifies how asynchronous code is handled in JavaScript. This is important because JavaScript is single threaded, it can run one thing at a time. When the main thread is busy, we queue the pending events and these are run later when the main thread is available."/>
+
+
+
+<meta itemprop="name" content="JavaScript Event Loop: Much more than you wanted to know">
+<meta itemprop="description" content="JavaScript Event Loop: Much more than you wanted to know Note: We&rsquo;ll cover the event loop in context of browsers and not other runtimes like Node.js
+The event loop is a mechanism/algorithm/set of rules that specifies how asynchronous code is handled in JavaScript. This is important because JavaScript is single threaded, it can run one thing at a time. When the main thread is busy, we queue the pending events and these are run later when the main thread is available."><meta itemprop="datePublished" content="2023-03-08T00:00:00+00:00" />
+<meta itemprop="dateModified" content="2023-03-08T00:00:00+00:00" />
+<meta itemprop="wordCount" content="2616">
+<meta itemprop="keywords" content="" />
+<meta name="referrer" content="no-referrer-when-downgrade" />
+
+  <style>
+  :root {
+    --width: 640px;
+    --font-main: Verdana, sans-serif;
+    --font-secondary: Verdana, sans-serif;
+    --font-scale: 1em;
+    --background-color: #fff;
+    --heading-color: #222;
+    --text-color: #444;
+    --link-color: #3273dc;
+    --visited-color: #8b6fcb;
+    --code-background-color: #ececec;
+    --code-color: #222;
+    --blockquote-color: #222;
+  }
+
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --background-color: #01242e;
+      --heading-color: #eee;
+      --text-color: #ddd;
+      --link-color: #8cc2dd;
+      --visited-color: #8b6fcb;
+      --code-background-color: #000;
+      --code-color: #ddd;
+      --blockquote-color: #ccc;
+    }
+  }
+
+  body {
+    font-family: var(--font-secondary);
+    font-size: var(--font-scale);
+    margin: auto;
+    padding: 20px;
+    max-width: var(--width);
+    text-align: left;
+    background-color: var(--background-color);
+    word-wrap: break-word;
+    overflow-wrap: break-word;
+    line-height: 1.5;
+    color: var(--text-color);
+  }
+
+  h1,
+  h2,
+  h3,
+  h4,
+  h5,
+  h6 {
+    font-family: var(--font-main);
+    color: var(--heading-color);
+  }
+
+  a {
+    color: var(--link-color);
+    cursor: pointer;
+    text-decoration: none;
+  }
+
+  a:hover {
+    text-decoration: underline;
+  }
+
+  nav a {
+    margin-right: 8px;
+  }
+
+  strong,
+  b {
+    color: var(--heading-color);
+  }
+
+  button {
+    margin: 0;
+    cursor: pointer;
+  }
+
+  main {
+    line-height: 1.6;
+  }
+
+  table {
+    width: 100%;
+  }
+
+  hr {
+    border: 0;
+    border-top: 1px dashed;
+  }
+
+  img {
+    max-width: 100%;
+  }
+
+  code {
+    font-size: 0.85em;
+    font-family: Menlo, Courier, monospace;
+    padding: 2px;
+    background-color: var(--code-background-color);
+    color: var(--code-color);
+    border-radius: 3px;
+  }
+
+  pre {
+    background-color: var(--code-background-color);
+    padding: 12px;
+    overflow-x: auto;
+  }
+
+  pre code {
+    padding: 0;
+  }
+
+  blockquote {
+    border-left: 1px solid #999;
+    color: var(--code-color);
+    padding-left: 20px;
+    font-style: italic;
+  }
+
+  footer {
+    padding: 25px 0;
+    text-align: center;
+  }
+
+  .title:hover {
+    text-decoration: none;
+  }
+
+  .title h1 {
+    font-size: 1.5em;
+  }
+
+  .inline {
+    width: auto !important;
+  }
+
+  .highlight,
+  .code {
+    padding: 1px 15px;
+    background-color: var(--code-background-color);
+    color: var(--code-color);
+    border-radius: 3px;
+    margin-block-start: 1em;
+    margin-block-end: 1em;
+    overflow-x: auto;
+  }
+
+   
+  ul.blog-posts {
+    list-style-type: none;
+    padding: unset;
+  }
+
+  ul.blog-posts li {
+    display: flex;
+  }
+
+  ul.blog-posts li span {
+    flex: 0 0 130px;
+  }
+
+  ul.blog-posts li a:visited {
+    color: var(--visited-color);
+  }
+</style>
+</head>
+
+<body>
+  <header><a href="/" class="title">
+  <h2>Atif Afzal</h2>
+</a>
+<nav><a href="/">Home</a>
+
+<a href="/articles/">Articles</a>
+
+<a href="/snippets/">Snippets</a>
+
+
+</nav>
+</header>
+  <main>
+
+<p style="margin-bottom:-1.2em;opacity: 0.7;">
+  <i>
+    <time datetime='2023-03-08' pubdate>
+      08 Mar, 2023
+    </time>
+  </i>
+</p>
+
+<content>
+  <h1 id="javascript-event-loop-much-more-than-you-wanted-to-know">JavaScript Event Loop: Much more than you wanted to know</h1>
+<p><em>Note: We&rsquo;ll cover the event loop in context of browsers and not other runtimes like Node.js</em></p>
+<p>The event loop is a mechanism/algorithm/set of rules that specifies how asynchronous code is handled in JavaScript. This is important because JavaScript is single threaded, it can run one thing at a time. When the main thread is busy, we queue the pending events and these are run later when the main thread is available.</p>
+<p>When we say JavaScript is single threaded, we are talking about the main UI thread where everything related to the UI is run. This includes user interaction handling, rendering, user scripts etc. The browser might be having more threads that it uses internally but our code is run in this main UI thread. There is <a href="https://developer.mozilla.org/en-US/docs/Web/API/Web_Workers_API/Using_web_workers">Web Workers API</a> which can spawn new threads and our code can run in it, but it can&rsquo;t interact with the UI directly.</p>
+<p>Historically, event loop was not part of the JavaScript specification, the host environments were free to implement it without any standard. The event loop standard was first specified in the <a href="https://262.ecma-international.org/6.0/#sec-jobs-and-job-queues">ES6 specification</a>. Before node 11 was released in 2019, the event loop behavior was different in node.js and the browsers. <sup id="fnref:1"><a href="#fn:1" class="footnote-ref" role="doc-noteref">1</a></sup></p>
+<p>When we try to run any JavaScript code, they might come to the event loop in the form of different type of tasks:</p>
+<ul>
+<li>macro task</li>
+<li>micro task</li>
+<li>requestAnimationFrame task</li>
+<li>nano task (this is only available in node.js, we won&rsquo;t talk about this, we are focused on browsers)</li>
+</ul>
+<h2 id="macro-task">Macro task</h2>
+<p>This is the most common type of task in the event loop.
+This includes these but is not limited to:</p>
+<ul>
+<li>code running from a script tag</li>
+<li>callback in a timer</li>
+<li>callback run when a network request is finished using <code>XMLHttpRequest</code></li>
+<li>collection of multiple handler callbacks in response to an event</li>
+</ul>
+<h3 id="timer-macro-task">Timer macro task</h3>
+<p>Doing <code>setTimeout(cb, 0)</code> is the most common form of queueing a macro task in the macro task queue.</p>
+<pre><code class="language-js">setTimeout(() =&gt; {
+  console.log('timeout');
+}, 0);
+
+console.log('script');
+</code></pre>
+<p>Firstly, this code itself is running as a macro task. To execute this code in the browser, we have to use a <a href="https://developer.mozilla.org/en-US/docs/Web/HTML/Element/script">script</a> which adds this code as a macro task in the macro task queue. The event loop then picks this up from the macro task queue.</p>
+<p>The <code>setTimeout</code> function is called, the timer is started by the hosting environment. The timer is running in parallel to our main thread, when the timer will expire in the future it adds the callback with <code>console.log('timeout')</code> to the macro task queue.</p>
+<p>Now back to the present, while the timer has started running in parallel, the main thread has other code to run like the <code>console.log('script')</code>. In JavaScript, a code once started is always <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/EventLoop#run-to-completion">run to completion</a> before anything else can run, i.e. it cannot be interrupted in between for other task. The new task is instead queued in a task queue when it is ready to run on the main thread and runs when its turn comes.</p>
+<p>When a macro task finishes, a task from the macro task queue is picked to run again to completion. If there were multiple macro tasks which were enqueued while the main thread was busy, we&rsquo;ll get the first macro task and others will wait in the queue.</p>
+<p>The pseudocode for the event loop with macro task looks like this:</p>
+<pre><code class="language-js">function eventLoop() {
+  const macroTaskQueue = [];
+
+  while (true) {
+    const macroTask = macroTaskQueue.shift();
+    runToCompletion(macroTask);
+  }
+}
+</code></pre>
+<h4 id="quirk-in-using-settimeout-for-queueing-macro-task">Quirk in using setTimeout for queueing macro task</h4>
+<p>A small detour before moving back to event loop. <code>setTimeout</code> has a strange behavior which is even listed in the HTML standard.</p>
+<blockquote>
+<p>Timers can be nested; after five such nested timers, however, the interval is forced to be at least four milliseconds.
+&ndash; <a href="https://html.spec.whatwg.org/multipage/timers-and-user-prompts.html#timers">HTML Standard</a></p>
+</blockquote>
+<p>Code snippet creating nested <code>setTimeout</code> calls with depth = 10.</p>
+<pre><code class="language-js">let depth = 1;
+let previousTime = performance.now();
+function recurse() {
+  if (depth &gt; 10) {
+    return;
+  }
+  const nowTime = performance.now();
+  console.log({ depth, time: nowTime - previousTime });
+  previousTime = nowTime;
+  depth += 1;
+  setTimeout(recurse, 0);
+}
+
+setTimeout(recurse, 0);
+</code></pre>
+<p>The output of above snippet in Chrome <code>Version 110.0.5481.177 (Official Build) (arm64)</code> is</p>
+<pre><code>{depth: 1, time: 0.7999999970197678}
+{depth: 2, time: 0.4000000059604645}
+{depth: 3, time: 0.09999999403953552}
+{depth: 4, time: 0.10000000149011612}
+{depth: 5, time: 4.700000002980232}
+{depth: 6, time: 4.799999997019768}
+{depth: 7, time: 4.200000002980232}
+{depth: 8, time: 4.799999997019768}
+{depth: 9, time: 4.800000004470348}
+{depth: 10, time: 5.799999997019768}
+</code></pre>
+<p>After 5 recursive nested calls, <code>setTimeout(cb, 0)</code> takes at least 4ms to put the callback to the macro task queue.</p>
+<p>Because of this, <code>setTimeout</code> is not the most reliable way to queue a macro task to the macro task queue.</p>
+<p>A better way is to use <a href="https://developer.mozilla.org/en-US/docs/Web/API/MessageChannel">MessageChannel</a> to enqueue a macro task. <sup id="fnref:2"><a href="#fn:2" class="footnote-ref" role="doc-noteref">2</a></sup></p>
+<pre><code class="language-js">function queueMacroTask(cb) {
+  const mc = new MessageChannel();
+  mc.port1.postMessage (null);
+  mc.port2.addEventListener(&quot;message&quot;, () =&gt; {
+    cb();
+  }, {once: true});
+  mc.port2.start();
+}
+</code></pre>
+<p>Running the same code which we ran before with our <code>queueMacroTask</code>:</p>
+<pre><code class="language-js">let depth = 1;
+let previousTime = performance.now();
+function recurse() {
+  if (depth &gt; 10) {
+    return;
+  }
+  const nowTime = performance.now();
+  console.log({ depth, time: nowTime - previousTime });
+  previousTime = nowTime;
+  depth += 1;
+  queueMacroTask(recurse);
+}
+
+queueMacroTask(recurse);
+</code></pre>
+<p>The result is:</p>
+<pre><code>{depth: 1, time: 0.4000000059604645}
+{depth: 2, time: 0.5}
+{depth: 3, time: 0.09999999403953552}
+{depth: 4, time: 0.10000000149011612}
+{depth: 5, time: 0.10000000149011612}
+{depth: 6, time: 0.20000000298023224}
+{depth: 7, time: 0.09999999403953552}
+{depth: 8, time: 0.20000000298023224}
+{depth: 9, time: 0.20000000298023224}
+{depth: 10, time: 0.19999999552965164}
+</code></pre>
+<p>This is better than <code>setTimeout</code>, it doesn&rsquo;t have the 4ms quirk.</p>
+<p>Now let&rsquo;s go back to the event loop.</p>
+<h3 id="event-listener-macro-task">Event listener macro task</h3>
+<p>This covers the case of having multiple callbacks in a single macro task.</p>
+<pre><code class="language-html">&lt;div id=&quot;outer&quot;&gt;
+  &lt;div id=&quot;inner&quot;&gt;Click me&lt;/div&gt;
+&lt;/div&gt;
+</code></pre>
+<pre><code class="language-js">const outer = document.getElementById('outer');
+const inner = document.getElementById('inner');
+
+function onClick() {
+  console.log(&quot;click event&quot;, this.id);
+}
+
+inner.addEventListener(&quot;click&quot;, onClick);
+outer.addEventListener(&quot;click&quot;, onClick);
+
+console.log('script');
+</code></pre>
+<p>In this snippet we have two divs - <code>inner</code> div inside the <code>outer</code> div. Clicking on the text <code>Click me</code> enqueues a task which consists of two callbacks one for the <code>inner</code> div click event handler and other for the <code>outer</code> div click event handler because of <a href="https://javascript.info/bubbling-and-capturing#bubbling">event bubbling</a>.</p>
+<p>This is important for future sections - <strong>a single macro task can consist of multiple callbacks</strong>. DOM has provided these multiple callbacks to this single macro task.</p>
+<p>And this was a basic example, doing small DOM manipulation can cause a lot of callbacks to be triggered in production code.</p>
+<p>Now, let&rsquo;s write the new updated event loop pseudocode keeping in mind that a single macro task can consist of multiple callbacks.</p>
+<pre><code class="language-js">function eventLoop() {
+  const macroTaskQueue = [];
+
+  while (true) {
+    const macroTaskCallbacks = macroTaskQueue.shift();
+    for (let i = 0; i &lt; macrotaskCallbacks.length; ++i) {
+      const macroTaskCallback = macroTaskCallbacks[i];
+      runToCompletion(macroTaskCallback);
+    }
+  }
+}
+</code></pre>
+<p>There&rsquo;s a special case<sup id="fnref:3"><a href="#fn:3" class="footnote-ref" role="doc-noteref">3</a></sup> that we should discuss. The snippet is similar to the previous one but here we call <code>click</code> in the program itself instead of clicking it manually by ourselves in real life.</p>
+<pre><code class="language-js">const outer = document.getElementById('outer');
+const inner = document.getElementById('inner');
+
+function onClick() {
+  console.log(&quot;click event&quot;, this.id);
+}
+
+inner.addEventListener(&quot;click&quot;, onClick);
+outer.addEventListener(&quot;click&quot;, onClick);
+
+console.log('script');
+
+inner.click();
+</code></pre>
+<p>When we programmatically call the <code>click</code> function, then there&rsquo;s no new macro task which will be queued to the macro task queue. We&rsquo;ll still be continuing the main <code>script</code> level macro task when running both <code>onClick</code> functions later on.</p>
+<p>It&rsquo;ll be similar to this pseudo code:</p>
+<pre><code>inner.click = (e) =&gt; {
+  onClick.call(inner, e);
+  onClick.call(outer, e);
+};
+</code></pre>
+<p>which keeps the <code>onClick</code> handlers in the same function call and not create new macro task callbacks.</p>
+<p>Although, this new snippet outputs in the same sequence but will have different behavior when mixed with micro tasks.</p>
+<h2 id="micro-tasks">Micro tasks</h2>
+<p>Micro tasks were created to be used for <a href="https://javascript.info/mutation-observer">Mutation observer</a>.</p>
+<p>JavaScript Promises use micro tasks. The Promise implementation was first done in the user land, there were a lot of libraries implementing Promise before <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Promise">native Promise</a> was available in the browsers. Library authors were in competition to create fast Promise library, so they started using micro tasks for implementing Promise.<sup id="fnref:4"><a href="#fn:4" class="footnote-ref" role="doc-noteref">4</a></sup></p>
+<p>Micro tasks are run when the current task callback has finished running to completion (the call stack is empty).</p>
+<p>When the micro tasks start running, they exhaust the complete micro task queue. If in between a micro task, new micro tasks are queued then they are run till the micro task queue is empty.</p>
+<pre><code class="language-js">function addMicroTask() {
+  Promise.resolve().then(() =&gt; {
+    addMicroTask();
+  });
+}
+
+addMicroTask();
+</code></pre>
+<p>The above code will block the main thread because the micro task will keep on increasing and the micro task queue will never end.</p>
+<p>Let&rsquo;s check out a mix of macro task and micro task:</p>
+<pre><code class="language-js">setTimeout(() =&gt; {
+  console.log('timeout');
+}, 0);
+
+Promise.resolve().then(() =&gt; {
+  console.log('promise');
+});
+
+console.log('script');
+</code></pre>
+<p>The current macro task running is the main script which has the statement <code>console.log('script')</code>. When the first statement with <code>setTimeout</code> runs, it starts off the timer, which will add the callback to the macro task queue after 0 ms.</p>
+<p>The <code>Promise.resolve()</code> statement resolves this promise immediately and adds the <code>console.log('promise')</code> callback to the micro task queue.</p>
+<p>The statement with <code>console.log('script')</code> runs immediately and prints <code>'script'</code>. This ends the current <code>script</code> macro task. We then exhaust the micro task queue which prints <code>'promise'</code>, and then continue the event loop and get the next macro task which prints <code>'timeout'</code>.</p>
+<p>Updated event loop pseudo code:</p>
+<pre><code class="language-js">function eventLoop() {
+  const macroTaskQueue = [];
+  const microTaskQueue = [];
+
+  while (true) {
+    const macroTaskCallbacks = macroTaskQueue.shift();
+    for (let i = 0; i &lt; macrotaskCallbacks.length; ++i) {
+      const macroTaskCallback = macroTaskCallbacks[i];
+      runToCompletion(macroTaskCallback);
+      while (microTaskQueue.length !== 0) {
+        const microTask = microTaskQueue.shift();
+        runToCompletion(microTask);
+      }
+    }
+  }
+}
+</code></pre>
+<p>The important thing to note - <strong>the micro task exhaustion starts after each callback of the macro task is finished</strong>. Even if a macro task has multiple callbacks, then the micro task queue exhaustion starts with - when the first callback ends. It won&rsquo;t wait for all the callbacks of the current macro task to finish.</p>
+<p>Refactoring the code by moving micro task exhaustion code to a function:</p>
+<pre><code class="language-js">function eventLoop() {
+  const macroTaskQueue = [];
+  const microTaskQueue = [];
+
+  function exhaustMicroTaskQueue() {
+    while (microTaskQueue.length !== 0) {
+      const microTask = microTaskQueue.shift();
+      runToCompletion(microTask);
+    }
+  }
+
+  while (true) {
+    const macroTaskCallbacks = macroTaskQueue.shift();
+    for (let i = 0; i &lt; macroTaskCallbacks.length; ++i) {
+      const macroTaskCallback = macroTaskCallbacks[i];
+      runToCompletion(macroTaskCallback);
+      exhaustMicroTaskQueue()
+    }
+  }
+}
+</code></pre>
+<p>Unlike macro tasks which do not provide a direct way to enqueue a task to the macro task queue, micro tasks have a function <a href="https://developer.mozilla.org/en-US/docs/Web/API/queueMicrotask">queueMicroTask</a> which can be used to directly enqueue a callback to the micro task queue.</p>
+<p>Now, back to the special case that we talked about earlier in macro task section. Let&rsquo;s add a Promise to mix macro and micro tasks:</p>
+<pre><code class="language-js">const outer = document.getElementById('outer');
+const inner = document.getElementById('inner');
+
+function onClick() {
+  console.log(&quot;click event&quot;, this.id);
+  
+  Promise.resolve().then(() =&gt; {
+    console.log(&quot;resolved&quot;, this.id);
+  });
+}
+
+inner.addEventListener(&quot;click&quot;, onClick);
+outer.addEventListener(&quot;click&quot;, onClick);
+
+console.log('script');
+
+inner.click();
+</code></pre>
+<p>The result of this code is:</p>
+<pre><code>script
+click event inner
+click event outer
+resolved inner
+resolver outer
+</code></pre>
+<p>Because there was no new macro task, the script macro task continued and the <code>onClick</code> functions were called on the top of the running stack. Because the original script macro task callback was not finished, the micro task exhaustion does not start and we see the <code>resolved x</code> logs at the end when the original script macro task finishes after both <code>onClick</code> handlers are called.</p>
+<p>Removing <code>inner.click</code> and manually clicking the inner div instead generates this output:</p>
+<pre><code>script
+click event inner
+resolved inner
+click event outer
+resolved outer
+</code></pre>
+<p>After logging <code>script</code>, the main script macro task ends. The new macro task has 2 callbacks: first for inner <code>onClick</code>, second for outer <code>onClick</code>. Now, at the end of the first callback we exhaust the micro task queue. And then after running the second callback, we exhaust the micro task queue again.</p>
+<h2 id="rendering">Rendering</h2>
+<p>Rendering is a part of the event loop <sup id="fnref:5"><a href="#fn:5" class="footnote-ref" role="doc-noteref">5</a></sup>. Rendering happens at the end of the current event loop iteration (each event loop iteration is also known as a tick of the event loop). And it happens only when required i.e. when it is time to render a new frame - after an interval of ~16 ms for a 60 hertz display. Although, <strong>the browser might have to skip rendering of some frames if the phases before rendering took a lot of time</strong>.</p>
+<pre><code class="language-js">function eventLoop() {
+  // ...
+
+  while (true) {
+    const macroTaskCallbacks = macroTaskQueue.shift();
+    for (let i = 0; i &lt; macroTaskCallbacks.length; ++i) {
+      const macroTaskCallback = macroTaskCallbacks[i];
+      runToCompletion(macroTaskCallback);
+      exhaustMicroTaskQueue()
+    }
+
+    if (isItTimeForNextFrameRender()) {
+      render();
+    }
+  }
+}
+</code></pre>
+<p>If we want to run something just before the rendering of a frame happens - we can use <a href="https://developer.mozilla.org/en-US/docs/Web/API/window/requestAnimationFrame">requestAnimationFrame</a>. If we call <code>requestAnimationFrame</code> multiple times before the frame is rendered then all the callbacks passed are enqueued in a queue and these all are run before the frame renders.</p>
+<pre><code class="language-js">function eventLoop() {
+  // ...
+  const rAFQueue = [];
+  while (true) {
+    // ...
+    
+    if (isItTimeForNextFrameRender()) {
+      for (let i = 0; i &lt; rAFQueue.length; ++i) {
+        const rAFTask = rAFQueue[i];
+        runToCompletion(rAFTask);
+      }
+
+      render();
+    }
+  }
+}
+</code></pre>
+<p>The important thing to note is - <strong>the new rAF callbacks queued are not run in this tick</strong> (because we only looped over the current tasks and are not using the new ones). The new ones are queued for the next time when we need to render the next frame.</p>
+<p>Let&rsquo;s take a look at this set of code snippets:</p>
+<pre><code class="language-html">&lt;div id=&quot;button&quot;&gt;Click me&lt;/div&gt;
+</code></pre>
+<pre><code class="language-js">function onClick() {
+  document.body.style.backgroundColor = &quot;red&quot;;
+  document.body.style.backgroundColor = &quot;blue&quot;;
+}
+
+document.getElementById('button')
+  .addEventListener('click', onClick);
+</code></pre>
+<p>After clicking, what will happen? Will we see both red and blue background color in sequence or just the blue background? We can now answer this question using the event loop.</p>
+<p>The current code is running as a macro task via a script tag. Now, on click - a new macro task is pushed which is the onClick function. This onClick function runs to completion and only then we go to the rendering phase. In the end the last value of backgroundColor - blue is used to render the page.</p>
+<p>What if we wanted to first render the page with red color and then with blue in the next frame. Would using a <code>requestAnimationFrame</code> help. Will this work?:</p>
+<pre><code class="language-js">function onClick() {
+  document.body.style.backgroundColor = &quot;red&quot;;
+  requestAnimationFrame(() =&gt; {
+    document.body.style.backgroundColor = &quot;blue&quot;;
+  });
+}
+</code></pre>
+<p>This still won&rsquo;t work because we know that the <code>requestAnimationFrame</code> callbacks are run before rendering. The render phase will get the backgroundColor = blue.</p>
+<p>We can use 2 nested <code>requestAnimationFrame</code> callbacks to solve this. Now just before rendering the second frame we&rsquo;ll set the backgroundColor to blue. Which creates the effect that we want.</p>
+<pre><code class="language-js">function onClick() {
+  document.body.style.backgroundColor = &quot;red&quot;;
+  requestAnimationFrame(() =&gt; {
+    requestAnimationFrame(() =&gt; {
+      document.body.style.backgroundColor = &quot;blue&quot;;
+    });
+  });
+}
+</code></pre>
+<p>Next important thing is - <strong>micro task can also run between these <code>requestAnimationFrame</code> callbacks for the current frame similar to multiple callbacks in a macro task</strong>.</p>
+<pre><code class="language-js">function eventLoop() {
+  // ...
+  const rAFQueue = [];
+  while (true) {
+    // ...
+    
+    if (isItTimeForNextFrameRender()) {
+      for (let i = 0; i &lt; rAFQueue.length; ++i) {
+        const rAFTask = rAFQueue[i];
+        runToCompletion(rAFTask);
+        exhaustMicroTaskQueue();
+      }
+
+      render();
+    }
+  }
+}
+</code></pre>
+<h2 id="final-event-loop-code">Final event loop code</h2>
+<p>This is the final event loop code which can be used to reason about any code that you see in your JavaScript code in the browser environments.</p>
+<pre><code class="language-js">function eventLoop() {
+  const macroTaskQueue = [];
+  const microTaskQueue = [];
+  const rAFQueue = [];
+  
+  function exhaustMicroTaskQueue() {
+    while (microTaskQueue.length !== 0) {
+      const microTask = microTaskQueue.shift();
+      runToCompletion(microTask);
+    }
+  }
+  
+  while (true) {
+    const macroTaskCallbacks = macroTaskQueue.shift();
+    for (let i = 0; i &lt; macroTaskCallbacks.length; ++i) {
+      const macroTaskCallback = macroTaskCallbacks[i];
+      runToCompletion(macroTaskCallback);
+      exhaustMicroTaskQueue();
+    }
+
+    if (isItTimeForNextFrameRender()) {
+      for (let i = 0; i &lt; rAFQueue.length; ++i) {
+        const rAFTask = rAFQueue[i];
+        runToCompletion(rAFTask);
+        exhaustMicroTaskQueue();
+      }
+
+      render();
+    }
+  }
+}
+</code></pre>
+<div class="footnotes" role="doc-endnotes">
+<hr>
+<ol>
+<li id="fn:1">
+<p><a href="https://blog.insiderattack.net/new-changes-to-timers-and-microtasks-from-node-v11-0-0-and-above-68d112743eb3">https://blog.insiderattack.net/new-changes-to-timers-and-microtasks-from-node-v11-0-0-and-above-68d112743eb3</a>&#160;<a href="#fnref:1" class="footnote-backref" role="doc-backlink">&#x21a9;&#xfe0e;</a></p>
+</li>
+<li id="fn:2">
+<p><a href="https://youtu.be/8eHInw9_U8k?t=495">https://youtu.be/8eHInw9_U8k?t=495</a>&#160;<a href="#fnref:2" class="footnote-backref" role="doc-backlink">&#x21a9;&#xfe0e;</a></p>
+</li>
+<li id="fn:3">
+<p><a href="https://jakearchibald.com/2015/tasks-microtasks-queues-and-schedules/#level-1-bosss-angry-older-brother">https://jakearchibald.com/2015/tasks-microtasks-queues-and-schedules/#level-1-bosss-angry-older-brother</a>&#160;<a href="#fnref:3" class="footnote-backref" role="doc-backlink">&#x21a9;&#xfe0e;</a></p>
+</li>
+<li id="fn:4">
+<p><a href="https://stackoverflow.com/questions/66190571/what-was-the-motivation-for-introducing-a-separate-microtask-queue-which-the-eve#answer-66386291">https://stackoverflow.com/questions/66190571/what-was-the-motivation-for-introducing-a-separate-microtask-queue-which-the-eve#answer-66386291</a>&#160;<a href="#fnref:4" class="footnote-backref" role="doc-backlink">&#x21a9;&#xfe0e;</a></p>
+</li>
+<li id="fn:5">
+<p><a href="https://html.spec.whatwg.org/multipage/webappapis.html#update-the-rendering">https://html.spec.whatwg.org/multipage/webappapis.html#update-the-rendering</a>&#160;<a href="#fnref:5" class="footnote-backref" role="doc-backlink">&#x21a9;&#xfe0e;</a></p>
+</li>
+</ol>
+</div>
+
+</content>
+<p>
+  
+</p>
+
+  </main>
+  <footer>
+</footer>
+
+    
+</body>
+
+</html>

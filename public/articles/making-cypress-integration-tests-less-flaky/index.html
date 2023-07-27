@@ -1,0 +1,411 @@
+<!DOCTYPE html>
+<html lang="en-us">
+
+<head>
+  <meta http-equiv="X-Clacks-Overhead" content="GNU Terry Pratchett" />
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Making Cypress Integration Tests Less Flaky | Atif Afzal</title>
+<meta name="title" content="Making Cypress Integration Tests Less Flaky" />
+<meta name="description" content="Making Cypress Integration Tests Less Flaky TL;DR Interleave Cypress commands like .find, .get, .first, .eq, .type with Cypress assertions like .should, .contains. Cypress runs only the last command when retrying. Interleaving act as guards to ensure we reach to the correct element which also helps avoiding detached parent errors.
+Don&rsquo;t just wait for network calls, wait for the UI to be updated with the network data. If a network call has finished, it doesn&rsquo;t mean the UI would be updated immediately." />
+<meta name="keywords" content="" />
+
+
+<meta property="og:title" content="Making Cypress Integration Tests Less Flaky" />
+<meta property="og:description" content="Making Cypress Integration Tests Less Flaky TL;DR Interleave Cypress commands like .find, .get, .first, .eq, .type with Cypress assertions like .should, .contains. Cypress runs only the last command when retrying. Interleaving act as guards to ensure we reach to the correct element which also helps avoiding detached parent errors.
+Don&rsquo;t just wait for network calls, wait for the UI to be updated with the network data. If a network call has finished, it doesn&rsquo;t mean the UI would be updated immediately." />
+<meta property="og:type" content="article" />
+<meta property="og:url" content="https://atfzl.com/articles/making-cypress-integration-tests-less-flaky/" /><meta property="article:section" content="articles" />
+<meta property="article:published_time" content="2022-02-01T00:00:00+00:00" />
+<meta property="article:modified_time" content="2022-02-01T00:00:00+00:00" />
+
+
+
+<meta name="twitter:card" content="summary"/>
+<meta name="twitter:title" content="Making Cypress Integration Tests Less Flaky"/>
+<meta name="twitter:description" content="Making Cypress Integration Tests Less Flaky TL;DR Interleave Cypress commands like .find, .get, .first, .eq, .type with Cypress assertions like .should, .contains. Cypress runs only the last command when retrying. Interleaving act as guards to ensure we reach to the correct element which also helps avoiding detached parent errors.
+Don&rsquo;t just wait for network calls, wait for the UI to be updated with the network data. If a network call has finished, it doesn&rsquo;t mean the UI would be updated immediately."/>
+
+
+
+<meta itemprop="name" content="Making Cypress Integration Tests Less Flaky">
+<meta itemprop="description" content="Making Cypress Integration Tests Less Flaky TL;DR Interleave Cypress commands like .find, .get, .first, .eq, .type with Cypress assertions like .should, .contains. Cypress runs only the last command when retrying. Interleaving act as guards to ensure we reach to the correct element which also helps avoiding detached parent errors.
+Don&rsquo;t just wait for network calls, wait for the UI to be updated with the network data. If a network call has finished, it doesn&rsquo;t mean the UI would be updated immediately."><meta itemprop="datePublished" content="2022-02-01T00:00:00+00:00" />
+<meta itemprop="dateModified" content="2022-02-01T00:00:00+00:00" />
+<meta itemprop="wordCount" content="576">
+<meta itemprop="keywords" content="" />
+<meta name="referrer" content="no-referrer-when-downgrade" />
+
+  <style>
+  :root {
+    --width: 640px;
+    --font-main: Verdana, sans-serif;
+    --font-secondary: Verdana, sans-serif;
+    --font-scale: 1em;
+    --background-color: #fff;
+    --heading-color: #222;
+    --text-color: #444;
+    --link-color: #3273dc;
+    --visited-color: #8b6fcb;
+    --code-background-color: #ececec;
+    --code-color: #222;
+    --blockquote-color: #222;
+  }
+
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --background-color: #01242e;
+      --heading-color: #eee;
+      --text-color: #ddd;
+      --link-color: #8cc2dd;
+      --visited-color: #8b6fcb;
+      --code-background-color: #000;
+      --code-color: #ddd;
+      --blockquote-color: #ccc;
+    }
+  }
+
+  body {
+    font-family: var(--font-secondary);
+    font-size: var(--font-scale);
+    margin: auto;
+    padding: 20px;
+    max-width: var(--width);
+    text-align: left;
+    background-color: var(--background-color);
+    word-wrap: break-word;
+    overflow-wrap: break-word;
+    line-height: 1.5;
+    color: var(--text-color);
+  }
+
+  h1,
+  h2,
+  h3,
+  h4,
+  h5,
+  h6 {
+    font-family: var(--font-main);
+    color: var(--heading-color);
+  }
+
+  a {
+    color: var(--link-color);
+    cursor: pointer;
+    text-decoration: none;
+  }
+
+  a:hover {
+    text-decoration: underline;
+  }
+
+  nav a {
+    margin-right: 8px;
+  }
+
+  strong,
+  b {
+    color: var(--heading-color);
+  }
+
+  button {
+    margin: 0;
+    cursor: pointer;
+  }
+
+  main {
+    line-height: 1.6;
+  }
+
+  table {
+    width: 100%;
+  }
+
+  hr {
+    border: 0;
+    border-top: 1px dashed;
+  }
+
+  img {
+    max-width: 100%;
+  }
+
+  code {
+    font-size: 0.85em;
+    font-family: Menlo, Courier, monospace;
+    padding: 2px;
+    background-color: var(--code-background-color);
+    color: var(--code-color);
+    border-radius: 3px;
+  }
+
+  pre {
+    background-color: var(--code-background-color);
+    padding: 12px;
+    overflow-x: auto;
+  }
+
+  pre code {
+    padding: 0;
+  }
+
+  blockquote {
+    border-left: 1px solid #999;
+    color: var(--code-color);
+    padding-left: 20px;
+    font-style: italic;
+  }
+
+  footer {
+    padding: 25px 0;
+    text-align: center;
+  }
+
+  .title:hover {
+    text-decoration: none;
+  }
+
+  .title h1 {
+    font-size: 1.5em;
+  }
+
+  .inline {
+    width: auto !important;
+  }
+
+  .highlight,
+  .code {
+    padding: 1px 15px;
+    background-color: var(--code-background-color);
+    color: var(--code-color);
+    border-radius: 3px;
+    margin-block-start: 1em;
+    margin-block-end: 1em;
+    overflow-x: auto;
+  }
+
+   
+  ul.blog-posts {
+    list-style-type: none;
+    padding: unset;
+  }
+
+  ul.blog-posts li {
+    display: flex;
+  }
+
+  ul.blog-posts li span {
+    flex: 0 0 130px;
+  }
+
+  ul.blog-posts li a:visited {
+    color: var(--visited-color);
+  }
+</style>
+</head>
+
+<body>
+  <header><a href="/" class="title">
+  <h2>Atif Afzal</h2>
+</a>
+<nav><a href="/">Home</a>
+
+<a href="/articles/">Articles</a>
+
+<a href="/snippets/">Snippets</a>
+
+
+</nav>
+</header>
+  <main>
+
+<p style="margin-bottom:-1.2em;opacity: 0.7;">
+  <i>
+    <time datetime='2022-02-01' pubdate>
+      01 Feb, 2022
+    </time>
+  </i>
+</p>
+
+<content>
+  <h1 id="making-cypress-integration-tests-less-flaky">Making Cypress Integration Tests Less Flaky</h1>
+<hr>
+<h2 id="tldr">TL;DR</h2>
+<ol>
+<li>Interleave <a href="https://www.cypress.io">Cypress</a> commands like <code>.find</code>, <code>.get</code>, <code>.first</code>, <code>.eq</code>, <code>.type</code> with Cypress assertions like <code>.should</code>, <code>.contains</code>.
+<blockquote>
+<p>Cypress runs only the last command when retrying. Interleaving act as guards to ensure we reach to the correct element which also helps avoiding detached parent errors.</p>
+</blockquote>
+</li>
+<li>Don&rsquo;t just wait for network calls, wait for the UI to be updated with the network data.
+<blockquote>
+<p>If a network call has finished, it doesn&rsquo;t mean the UI would be updated immediately.</p>
+</blockquote>
+</li>
+</ol>
+<hr>
+<h2 id="example-1">Example 1</h2>
+<p><strong>BAD</strong>:</p>
+<pre><code class="language-js">cy.get('.parent').find('.child');
+
+// If `.parent` got detached and rerendered,
+// then the `.find` command would fail, as it
+// would try to run `.find` on the now detached parent.
+// This could happen in case of a loading `shimmer` component.
+</code></pre>
+<p><strong>GOOD</strong>:</p>
+<pre><code class="language-js">cy.get('.parent .child');
+
+// While `.child` has not rendered, Cypress will
+// keep retrying the last command, i.e. the complete
+// cy.get command.
+// Even if `.parent` got detached, Cypress would
+// run the complete command when it is trying to
+// find `.child`.
+</code></pre>
+<p>or</p>
+<pre><code class="language-js">cy.get('.parent')
+  .should('have.length', 3) // we made sure that the child has rendered
+  .find('.child');
+</code></pre>
+<p>or</p>
+<pre><code class="language-js">cy.get('.parent')
+  .contains('some text after which i am sure a child has rendered')
+  .find('.child')
+</code></pre>
+<hr>
+<h2 id="example-2">Example 2</h2>
+<p><strong>BAD</strong>:</p>
+<pre><code class="language-js">cy.get('.new-todo').type('todo A{enter}');
+cy.get('.todo-list')
+  .first()
+  .should('contain', 'todo A');
+
+cy.get('.new-todo').type('todo B{enter}');
+cy.get('.todo-list') // talking about this below
+  .first()
+  .should('contain', 'todo B');
+
+// It might take some time for `todo B` to be visible on UI after
+// `.type('todo B{enter}') because of async rendering/server calls etc.
+// `cy.get('.todo-list')` in this case returns the list with only
+// `todo A` because `todo B` is still not in UI. And then calling
+// `.first()` returns `todo A`.
+//
+// Cypress retries only the last command which in this case would be
+// `.first()` which would still return `todo A`, because
+// `cy.get('.todo-list')` still returns old list.
+
+</code></pre>
+<p>or</p>
+<pre><code class="language-js">cy.get('.new-todo').type('todo A{enter}');
+cy.get('.todo-list:first')
+  .should('contain', 'todo A');
+
+cy.get('.new-todo').type('todo B{enter}');
+cy.get('.todo-list:first')
+  .should('contain', 'todo B');
+
+// This would retry `cy.get('.todo-list:first')` which gets the
+// correct UI element after retrying.
+// This test is not flaky, but it uses `:first` which is deprecated in
+// jquery and will be removed in jquery 4
+</code></pre>
+<p><strong>GOOD</strong>:</p>
+<pre><code class="language-js">cy.get('.new-todo').type('todo A{enter}');
+cy.get('.todo-list')                        // command
+  .should('have.length', 1)                 // assertion
+  .first()                                  // command
+  .should('contain', 'todo A');             // assertion
+
+cy.get('.new-todo').type('todo B{enter}');
+cy.get('.todo-list')                        // command
+  .should('have.length', 2)                 // assertion
+  .first()                                  // command
+  .should('contain', 'todo B');             // assertion
+
+// We have interspersed commands with assertions.
+</code></pre>
+<hr>
+<h2 id="example-3">Example 3</h2>
+<p><strong>BAD</strong>:</p>
+<pre><code class="language-js">cy.wait('@myNetworkCall');
+
+cy.get('.ag-center-cols-viewport').
+  .find('.ag-row')
+  .first()
+  .click();
+
+// The parent `.ag-center-cols-viewport` might get detached before
+// finding the child
+</code></pre>
+<p>or</p>
+<pre><code class="language-js">cy.wait('@myNetworkCall');
+
+cy.get('.ag-center-cols-viewport .ag-row:first')
+  .click();
+
+// we might click on the first loading row of the table
+</code></pre>
+<p><strong>GOOD</strong>:</p>
+<pre><code class="language-js">cy.wait('@myNetworkCall');
+
+cy.get('.ag-center-cols-viewpost')
+  .contains('My data from network call now in UI')
+  .get('.ag-row') // now sure we'll get the correct element because
+  .first()        // of the assertion made above
+  .click();
+
+// check if UI state is updated in the parent container before querying
+// for child element
+</code></pre>
+<hr>
+<h2 id="example-4">Example 4</h2>
+<p><strong>BAD</strong>:</p>
+<pre><code class="language-js">cy.get('.ag-center-cols-viewport')
+  .find('.ag-row')
+  .first();
+// element from `cy.get` or element from `.find` might get detached
+</code></pre>
+<p>or</p>
+<pre><code class="language-js">cy.get('.ag-center-cols-viewport .ag-row')
+  .first();
+// element from `cy.get` might get detached
+</code></pre>
+<p>or</p>
+<pre><code class="language-js">cy.get('.ag-center-cols-viewport .ag-row:first');
+
+// :first is not a valid css selector. It is only supported by jquery, 
+// but it is deprecated and will be removed in future.
+</code></pre>
+<p><strong>GOOD</strong>:</p>
+<pre><code class="language-js">cy.get('.ag-center-cols-viewport')
+  .should('have.length', 10) // verify that we indeed have multiple rows
+  .first();
+</code></pre>
+<p>or</p>
+<pre><code class="language-js">cy.get('.ag-center-cols-viewport')
+  .contains('data from network call') // verify data populated
+  .first();
+</code></pre>
+<h2 id="references">References</h2>
+<ul>
+<li><a href="https://spin.atomicobject.com/2021/07/20/reduce-flakiness-cypress-tests/#:~:text=reduce%20inconsistent%20interactions%20in%20the%20dom">Reduce Inconsistent Interactions in the dom | spin.atomicobject.com</a></li>
+<li><a href="https://www.cypress.io/blog/2020/07/22/do-not-get-too-detached/">Do not get too detached | Cypress Blog</a></li>
+<li><a href="https://docs.cypress.io/guides/core-concepts/retry-ability">Retry Ability | Cypress Blog</a></li>
+</ul>
+
+</content>
+<p>
+  
+</p>
+
+  </main>
+  <footer>
+</footer>
+
+    
+</body>
+
+</html>
