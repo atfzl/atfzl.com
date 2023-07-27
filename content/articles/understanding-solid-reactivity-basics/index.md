@@ -167,4 +167,4 @@ These were the basic reactive ideas needed to understand how solid works under t
 
 This is the first blog post of series: `Understanding Solid`.
 
-Next post https://www.atfzl.com/understanding-solid-jsx
+Next post https://atfzl.com/understanding-solid-jsx
