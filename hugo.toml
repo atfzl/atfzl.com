@@ -1,0 +1,4 @@
+baseURL = 'https://atfzl.com/'
+languageCode = 'en-us'
+title = 'Atif Afzal'
+theme = 'hugo-bearblog'
