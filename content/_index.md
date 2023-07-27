@@ -10,4 +10,4 @@ Frontend engineer with eight years of experience, skilled in diverse fields like
 
 ## Resume
 
-[Resume](/files/atif_afzal_resume.pdf)
+[Resume (pdf)](/files/atif_afzal_resume.pdf)
