@@ -1,0 +1,19 @@
+{{ define "main" }}
+{{ if not .Params.menu }}
+<p style="margin-bottom:-1.2em;opacity: 0.7;">
+  <i>
+    <time datetime='{{ .Date.Format "2006-01-02" }}' pubdate>
+      {{ .Date.Format (default "02 Jan, 2006" .Site.Params.dateFormat) }}
+    </time>
+  </i>
+</p>
+{{ end }}
+<content>
+  {{ .Content }}
+</content>
+<p>
+  {{ range (.GetTerms "tags") }}
+  <a href="{{ .Permalink }}">#{{ .LinkTitle }}</a>
+  {{ end }}
+</p>
+{{ end }}
