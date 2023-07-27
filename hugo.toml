@@ -2,3 +2,8 @@ baseURL = 'https://atfzl.com/'
 languageCode = 'en-us'
 title = 'Atif Afzal'
 theme = 'hugo-bearblog'
+
+markup.highlight.codeFences = false
+
+[params]
+  hideMadeWithLine = true
