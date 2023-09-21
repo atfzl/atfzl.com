@@ -1,6 +1,6 @@
 # Hi I'm Atif Afzal
 
-Frontend engineer with eight years of experience, skilled in diverse fields like ecommerce, healthcare, analytics, and AI. I excel in building beautiful interfaces quickly, focusing on frontend developer experience, web performance, and security.
+Frontend engineer with eight years of experience, worked in diverse fields like ecommerce, healthcare, analytics, and AI. I excel in building beautiful interfaces quickly, focusing on frontend developer experience, web performance, and security.
 
 ## Contact
 
