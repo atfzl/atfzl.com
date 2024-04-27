@@ -4,42 +4,30 @@
     <title>Snippets on Atif Afzal</title>
     <link>https://atfzl.com/snippets/</link>
     <description>Recent content in Snippets on Atif Afzal</description>
-    <generator>Hugo -- gohugo.io</generator>
+    <generator>Hugo</generator>
     <language>en-us</language>
-    <lastBuildDate>Tue, 19 Nov 2019 00:00:00 +0000</lastBuildDate><atom:link href="https://atfzl.com/snippets/index.xml" rel="self" type="application/rss+xml" />
+    <lastBuildDate>Tue, 19 Nov 2019 00:00:00 +0000</lastBuildDate>
+    <atom:link href="https://atfzl.com/snippets/index.xml" rel="self" type="application/rss+xml" />
     <item>
       <title>Using iTerm triggers</title>
       <link>https://atfzl.com/snippets/using-iterm-triggers/</link>
       <pubDate>Tue, 19 Nov 2019 00:00:00 +0000</pubDate>
-      
       <guid>https://atfzl.com/snippets/using-iterm-triggers/</guid>
-      <description>Using iTerm triggers iTerm triggers can be used for converting text in your terminal to URLs and make them clickable. This is useful for creating JIRA issue links whenever there is a JIRA-1234 like pattern.
-Steps: Go to iTerm -&amp;gt; Preferences -&amp;gt; Profiles -&amp;gt; Advanced -&amp;gt; Triggers Edit
-Add an entry in the table
-Regular Expression: (?i)JIRA-\d+ Action: Make Hyperlink Parameters: https://jira.yourhost.com/jira/browse/\0 Now whenever there is a pattern with JIRA-1234, it will become a clickable hyperlink.</description>
+      <description>Using iTerm triggers iTerm triggers can be used for converting text in your terminal to URLs and make them clickable. This is useful for creating JIRA issue links whenever there is a JIRA-1234 like pattern.&#xA;Steps: Go to iTerm -&amp;gt; Preferences -&amp;gt; Profiles -&amp;gt; Advanced -&amp;gt; Triggers Edit&#xA;Add an entry in the table&#xA;Regular Expression: (?i)JIRA-\d+ Action: Make Hyperlink Parameters: https://jira.yourhost.com/jira/browse/\0 Now whenever there is a pattern with JIRA-1234, it will become a clickable hyperlink.</description>
     </item>
-    
     <item>
       <title>Use emacs key bindings everywhere</title>
       <link>https://atfzl.com/snippets/use-emacs-key-bindings-everywhere/</link>
       <pubDate>Tue, 12 Nov 2019 00:00:00 +0000</pubDate>
-      
       <guid>https://atfzl.com/snippets/use-emacs-key-bindings-everywhere/</guid>
-      <description>Use emacs key bindings everywhere I am used to emacs keybinding.
-My caps lock is mapped to ctrl to avoid emacs pinky.
-I am also used to making movements the emacs way , i.e.,
-ctrl+f: right arrow ctrl+b: left arrow ctrl+p: up arrow ctrl+n: down arrow I have also remapped Ctrl+g to escape because I despise the escape key in the MacBook Pro touch bar.
-Mac supports this keybinding in most applications but these do not work for all applications.</description>
+      <description>Use emacs key bindings everywhere I am used to emacs keybinding.&#xA;My caps lock is mapped to ctrl to avoid emacs pinky.&#xA;I am also used to making movements the emacs way , i.e.,&#xA;ctrl+f: right arrow ctrl+b: left arrow ctrl+p: up arrow ctrl+n: down arrow I have also remapped Ctrl+g to escape because I despise the escape key in the MacBook Pro touch bar.&#xA;Mac supports this keybinding in most applications but these do not work for all applications.</description>
     </item>
-    
     <item>
       <title>Using flow and eslint in Emacs</title>
       <link>https://atfzl.com/snippets/using-flow-and-eslint-in-emacs/</link>
       <pubDate>Sun, 06 Nov 2016 00:00:00 +0000</pubDate>
-      
       <guid>https://atfzl.com/snippets/using-flow-and-eslint-in-emacs/</guid>
       <description>Using flow and eslint in Emacs (require &#39;company) (require &#39;web-mode) (require &#39;flycheck) (require &#39;flycheck-flow) ;; flow auto complete ;; skip this if you don&#39;t use company-mode (eval-after-load &#39;company &#39;(add-to-list &#39;company-backends &#39;company-flow)) ;; add eslint and flow checkers to flycheck (flycheck-add-mode &#39;javascript-eslint &#39;web-mode) (flycheck-add-mode &#39;javascript-flow &#39;web-mode) ;;disable jshint since we prefer eslint checking (setq-default flycheck-disabled-checkers (append flycheck-disabled-checkers &#39;(javascript-jshint))) (defun jsWithEslint () &amp;quot;eslint for js files&amp;quot; (interactive) (web-mode) (web-mode-set-content-type &amp;quot;jsx&amp;quot;) (flycheck-disable-checker &#39;javascript-flow) (flycheck-select-checker &#39;javascript-eslint) (flycheck-mode)) (defun jsWithEslintFlow () &amp;quot;flow and eslint for js files&amp;quot; (interactive) (web-mode) (web-mode-set-content-type &amp;quot;jsx&amp;quot;) (flycheck-select-checker &#39;javascript-eslint) (flycheck-add-next-checker &#39;javascript-eslint &#39;javascript-flow) (flycheck-mode)) ;; set key shortcuts if you want ;; (global-set-key (kbd &amp;quot;C-c j&amp;quot;) &#39;jsWithEslint) ;; (global-set-key (kbd &amp;quot;C-c f&amp;quot;) &#39;jsWithEslintFlow) (add-to-list &#39;auto-mode-alist &#39;(&amp;quot;\\.</description>
     </item>
-    
   </channel>
 </rss>
