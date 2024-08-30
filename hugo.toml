@@ -4,6 +4,7 @@ title = 'Atif Afzal'
 theme = 'hugo-bearblog'
 
 markup.highlight.codeFences = false
+markup.goldmark.renderer.unsafe = true
 
 [params]
   hideMadeWithLine = true
