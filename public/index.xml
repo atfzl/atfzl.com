@@ -6,8 +6,15 @@
     <description>Recent content on Atif Afzal</description>
     <generator>Hugo</generator>
     <language>en-us</language>
-    <lastBuildDate>Fri, 06 Sep 2024 00:00:00 +0000</lastBuildDate>
+    <lastBuildDate>Wed, 11 Sep 2024 00:00:00 +0000</lastBuildDate>
     <atom:link href="https://atfzl.com/index.xml" rel="self" type="application/rss+xml" />
+    <item>
+      <title>Create Require</title>
+      <link>https://atfzl.com/snippets/create-require/</link>
+      <pubDate>Wed, 11 Sep 2024 00:00:00 +0000</pubDate>
+      <guid>https://atfzl.com/snippets/create-require/</guid>
+      <description>Using require in ESM Node.js import { createRequire } from &#39;module&#39; const require = createRequire(import.meta.url); </description>
+    </item>
     <item>
       <title>Git Blame</title>
       <link>https://atfzl.com/snippets/git-blame/</link>
