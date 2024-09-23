@@ -3,6 +3,12 @@ title = "Reading"
 menu = "main"
 +++
 
+#### 09/2024
+
+Manifest [(Amazon Link)](https://www.amazon.in/Manifest-Sunday-Times-bestseller-change/dp/0241539595)
+
+<img src="images/manifest.jpg" style="height:320px">
+
 #### 08/2024
 
 Coward: Why We Get Anxious & What We Can Do About It [(Amazon Link)](https://www.amazon.in/Coward-Why-Anxious-What-About/dp/1838853103)
