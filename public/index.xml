@@ -23,11 +23,11 @@
       <description>Git Blame git blame -w ignores whitespaces&#xA;git blame -C checks for code movements between files in a commit.&#xA;Can use multiple -C:&#xA;git blame -w -C -C -C&#xA;Source: https://blog.gitbutler.com/git-tips-1-theres-a-git-config-for-that/</description>
     </item>
     <item>
-      <title>JavaScript Event Loop: Much more than you wanted to know</title>
-      <link>https://atfzl.com/articles/javascript-event-loop-much-more-than-you-wanted-to-know/</link>
+      <title>JavaScript Event Loop: The Definitive Edition</title>
+      <link>https://atfzl.com/articles/javascript-event-loop/</link>
       <pubDate>Wed, 08 Mar 2023 00:00:00 +0000</pubDate>
-      <guid>https://atfzl.com/articles/javascript-event-loop-much-more-than-you-wanted-to-know/</guid>
-      <description>JavaScript Event Loop: Much more than you wanted to know Note: We&amp;rsquo;ll cover the event loop in context of browsers and not other runtimes like Node.js&#xA;The event loop is a mechanism/algorithm/set of rules that specifies how asynchronous code is handled in JavaScript. This is important because JavaScript is single threaded, it can run one thing at a time. When the main thread is busy, we queue the pending events and these are run later when the main thread is available.</description>
+      <guid>https://atfzl.com/articles/javascript-event-loop/</guid>
+      <description>JavaScript Event Loop: The Definitive Edition Note: We&amp;rsquo;ll cover the event loop in context of browsers and not other runtimes like Node.js&#xA;The event loop is a mechanism/algorithm/set of rules that specifies how asynchronous code is handled in JavaScript. This is important because JavaScript is single threaded, it can run one thing at a time. When the main thread is busy, we queue the pending events and these are run later when the main thread is available.</description>
     </item>
     <item>
       <title>Making Cypress Integration Tests Less Flaky</title>

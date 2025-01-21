@@ -1,9 +1,9 @@
 +++
-title = "JavaScript Event Loop: Much more than you wanted to know"
+title = "JavaScript Event Loop: The Definitive Edition"
 date = "2023-03-08"
 +++
 
-# JavaScript Event Loop: Much more than you wanted to know
+# JavaScript Event Loop: The Definitive Edition
 
 _Note: We'll cover the event loop in context of browsers and not other runtimes like Node.js_
 
