@@ -85,5 +85,12 @@
       <guid>https://atfzl.com/snippets/using-flow-and-eslint-in-emacs/</guid>
       <description>Using flow and eslint in Emacs (require &#39;company) (require &#39;web-mode) (require &#39;flycheck) (require &#39;flycheck-flow) ;; flow auto complete ;; skip this if you don&#39;t use company-mode (eval-after-load &#39;company &#39;(add-to-list &#39;company-backends &#39;company-flow)) ;; add eslint and flow checkers to flycheck (flycheck-add-mode &#39;javascript-eslint &#39;web-mode) (flycheck-add-mode &#39;javascript-flow &#39;web-mode) ;;disable jshint since we prefer eslint checking (setq-default flycheck-disabled-checkers (append flycheck-disabled-checkers &#39;(javascript-jshint))) (defun jsWithEslint () &amp;quot;eslint for js files&amp;quot; (interactive) (web-mode) (web-mode-set-content-type &amp;quot;jsx&amp;quot;) (flycheck-disable-checker &#39;javascript-flow) (flycheck-select-checker &#39;javascript-eslint) (flycheck-mode)) (defun jsWithEslintFlow () &amp;quot;flow and eslint for js files&amp;quot; (interactive) (web-mode) (web-mode-set-content-type &amp;quot;jsx&amp;quot;) (flycheck-select-checker &#39;javascript-eslint) (flycheck-add-next-checker &#39;javascript-eslint &#39;javascript-flow) (flycheck-mode)) ;; set key shortcuts if you want ;; (global-set-key (kbd &amp;quot;C-c j&amp;quot;) &#39;jsWithEslint) ;; (global-set-key (kbd &amp;quot;C-c f&amp;quot;) &#39;jsWithEslintFlow) (add-to-list &#39;auto-mode-alist &#39;(&amp;quot;\\.</description>
     </item>
+    <item>
+      <title>Reads</title>
+      <link>https://atfzl.com/reads/</link>
+      <pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate>
+      <guid>https://atfzl.com/reads/</guid>
+      <description>2025 Why Can&amp;rsquo;t I Just Enjoy Things?, Pierre Novellie&#xA;&amp;lt;= 2024 Manifest, Roxie Nafousi&#xA;Coward, Tim Clare&#xA;Zero to One, Peter Thiel, Blake Masters&#xA;Akira Volume 2, Katsuhiro Otomo&#xA;Akira Volume 1, Katsuhiro Otomo&#xA;Slow Productivity, Cal Newport&#xA;Sales 101, Wendy Connick&#xA;Don&amp;rsquo;t Believe Everything You Think, Joseph Nguyen&#xA;Slowing Down to the Speed of Life, Richard Carlson and Joseph Bailey&#xA;ADHD Pro, Robert Merki&#xA;Mastery, Robert Greene&#xA;The Headspace Guide, Andy Puddicombe</description>
+    </item>
   </channel>
 </rss>
