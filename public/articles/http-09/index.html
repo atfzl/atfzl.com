@@ -1,0 +1,274 @@
+<!DOCTYPE html>
+<html lang="en-us">
+
+<head>
+  <meta http-equiv="X-Clacks-Overhead" content="GNU Terry Pratchett" />
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<link rel="shortcut icon" href="https://atfzl.com/favicon.ico" />
+<title>HTTP 0.9 | Atif Afzal</title>
+<meta name="title" content="HTTP 0.9" />
+<meta name="description" content="HTTP 0.9 The first version of Hyper Text Transfer Protocol (HTTP) Simple protocol without any headers Supported only GET method Request GET /index.html Response &lt;h1&gt;Hello World&lt;/h1&gt; Server: const net = require(&#39;net&#39;); net .createServer((socket) =&gt; { socket.on(&#39;data&#39;, (data) =&gt; { if (data.toString() === &#39;GET /index.html\r\n&#39;) { socket.write(&#39;&lt;h1&gt;Hello World&lt;/h1&gt;&#39;); } socket.end(); }); }) .listen(8080); Client: const net = require(&#39;net&#39;); const client = new net.Socket(); client.connect(&#39;8080&#39;, &#39;localhost&#39;, () =&gt; { client.write(&#39;GET index.html\r\n&#39;); }); client." />
+<meta name="keywords" content="" />
+
+
+<meta property="og:url" content="https://atfzl.com/articles/http-09/">
+  <meta property="og:site_name" content="Atif Afzal">
+  <meta property="og:title" content="HTTP 0.9">
+  <meta property="og:description" content="HTTP 0.9 The first version of Hyper Text Transfer Protocol (HTTP) Simple protocol without any headers Supported only GET method Request GET /index.html Response &lt;h1&gt;Hello World&lt;/h1&gt; Server: const net = require(&#39;net&#39;); net .createServer((socket) =&gt; { socket.on(&#39;data&#39;, (data) =&gt; { if (data.toString() === &#39;GET /index.html\r\n&#39;) { socket.write(&#39;&lt;h1&gt;Hello World&lt;/h1&gt;&#39;); } socket.end(); }); }) .listen(8080); Client: const net = require(&#39;net&#39;); const client = new net.Socket(); client.connect(&#39;8080&#39;, &#39;localhost&#39;, () =&gt; { client.write(&#39;GET index.html\r\n&#39;); }); client.">
+  <meta property="og:locale" content="en-us">
+  <meta property="og:type" content="article">
+    <meta property="article:section" content="articles">
+    <meta property="article:published_time" content="2025-01-25T00:00:00+00:00">
+    <meta property="article:modified_time" content="2025-01-25T00:00:00+00:00">
+
+
+
+<meta name="twitter:card" content="summary"><meta name="twitter:title" content="HTTP 0.9">
+<meta name="twitter:description" content="HTTP 0.9 The first version of Hyper Text Transfer Protocol (HTTP) Simple protocol without any headers Supported only GET method Request GET /index.html Response &lt;h1&gt;Hello World&lt;/h1&gt; Server: const net = require(&#39;net&#39;); net .createServer((socket) =&gt; { socket.on(&#39;data&#39;, (data) =&gt; { if (data.toString() === &#39;GET /index.html\r\n&#39;) { socket.write(&#39;&lt;h1&gt;Hello World&lt;/h1&gt;&#39;); } socket.end(); }); }) .listen(8080); Client: const net = require(&#39;net&#39;); const client = new net.Socket(); client.connect(&#39;8080&#39;, &#39;localhost&#39;, () =&gt; { client.write(&#39;GET index.html\r\n&#39;); }); client.">
+
+
+
+
+  <meta itemprop="name" content="HTTP 0.9">
+  <meta itemprop="description" content="HTTP 0.9 The first version of Hyper Text Transfer Protocol (HTTP) Simple protocol without any headers Supported only GET method Request GET /index.html Response &lt;h1&gt;Hello World&lt;/h1&gt; Server: const net = require(&#39;net&#39;); net .createServer((socket) =&gt; { socket.on(&#39;data&#39;, (data) =&gt; { if (data.toString() === &#39;GET /index.html\r\n&#39;) { socket.write(&#39;&lt;h1&gt;Hello World&lt;/h1&gt;&#39;); } socket.end(); }); }) .listen(8080); Client: const net = require(&#39;net&#39;); const client = new net.Socket(); client.connect(&#39;8080&#39;, &#39;localhost&#39;, () =&gt; { client.write(&#39;GET index.html\r\n&#39;); }); client.">
+  <meta itemprop="datePublished" content="2025-01-25T00:00:00+00:00">
+  <meta itemprop="dateModified" content="2025-01-25T00:00:00+00:00">
+  <meta itemprop="wordCount" content="80">
+<meta name="referrer" content="no-referrer-when-downgrade" />
+
+  <style>
+  :root {
+    --width: 640px;
+    --font-main: Verdana, sans-serif;
+    --font-secondary: Verdana, sans-serif;
+    --font-scale: 1em;
+    --background-color: #fff;
+    --heading-color: #222;
+    --text-color: #444;
+    --link-color: #3273dc;
+    --visited-color: #8b6fcb;
+    --code-background-color: #ececec;
+    --code-color: #222;
+    --blockquote-color: #222;
+  }
+
+   
+
+  body {
+    font-family: var(--font-secondary);
+    font-size: var(--font-scale);
+    margin: auto;
+    margin-top: 60px;
+    padding: 20px;
+    max-width: var(--width);
+    text-align: left;
+    background-color: var(--background-color);
+    word-wrap: break-word;
+    overflow-wrap: break-word;
+    line-height: 1.5;
+    color: var(--text-color);
+  }
+
+  h1,
+  h2,
+  h3,
+  h4,
+  h5,
+  h6 {
+    font-family: var(--font-main);
+    color: var(--heading-color);
+    margin-bottom: 0;
+  }
+
+  a {
+    color: var(--link-color);
+    cursor: pointer;
+    text-decoration: none;
+  }
+
+  a:hover {
+    text-decoration: underline;
+  }
+
+  nav a {
+    margin-right: 8px;
+  }
+
+  strong,
+  b {
+    color: var(--heading-color);
+  }
+
+  button {
+    margin: 0;
+    cursor: pointer;
+  }
+
+  main {
+    line-height: 1.6;
+  }
+
+  table {
+    width: 100%;
+  }
+
+  hr {
+    border: 0;
+    border-top: 1px dashed;
+  }
+
+  img {
+    max-width: 100%;
+  }
+
+  code {
+    font-size: 0.85em;
+    font-family: Menlo, Courier, monospace;
+    padding: 2px;
+    background-color: var(--code-background-color);
+    color: var(--code-color);
+    border-radius: 3px;
+  }
+
+  pre {
+    background-color: var(--code-background-color);
+    padding: 12px;
+    overflow-x: auto;
+  }
+
+  pre code {
+    padding: 0;
+  }
+
+  blockquote {
+    border-left: 1px solid #999;
+    color: var(--code-color);
+    padding-left: 20px;
+    font-style: italic;
+  }
+
+  footer {
+    padding: 25px 0;
+    text-align: center;
+  }
+
+  .title:hover {
+    text-decoration: none;
+  }
+
+  .title h1 {
+    font-size: 1.5em;
+  }
+
+  .inline {
+    width: auto !important;
+  }
+
+  .highlight,
+  .code {
+    padding: 1px 15px;
+    background-color: var(--code-background-color);
+    color: var(--code-color);
+    border-radius: 3px;
+    margin-block-start: 1em;
+    margin-block-end: 1em;
+    overflow-x: auto;
+  }
+
+   
+  ul.blog-posts {
+    list-style-type: none;
+    padding: unset;
+  }
+
+  ul.blog-posts li {
+    display: flex;
+  }
+
+  ul.blog-posts li span {
+    flex: 0 0 130px;
+  }
+
+  ul.blog-posts li a:visited {
+    color: var(--visited-color);
+  }
+</style>
+</head>
+
+<body>
+  <header><nav><a href="/">Home</a>
+
+<a href="/articles/">Articles</a>
+
+<a href="/reads/">Reads</a>
+
+<a href="/snippets/">Snippets</a>
+
+
+</nav>
+</header>
+  <main>
+
+<p style="margin-bottom:-1.2em;opacity: 0.7;">
+  <i>
+    <time datetime='2025-01-25' pubdate>
+      25 Jan, 2025
+    </time>
+  </i>
+</p>
+
+<content>
+  <h1 id="http-09">HTTP 0.9</h1>
+<ul>
+<li>The first version of Hyper Text Transfer Protocol (HTTP)</li>
+<li>Simple protocol without any headers</li>
+<li>Supported only GET method</li>
+</ul>
+<h4 id="_request_"><em>Request</em></h4>
+<pre><code>GET /index.html
+</code></pre>
+<h4 id="_response_"><em>Response</em></h4>
+<pre><code>&lt;h1&gt;Hello World&lt;/h1&gt;
+</code></pre>
+<h4 id="_server_"><em>Server:</em></h4>
+<pre><code class="language-js">const net = require('net');
+net
+  .createServer((socket) =&gt; {
+    socket.on('data', (data) =&gt; {
+      if (data.toString() === 'GET /index.html\r\n') {
+        socket.write('&lt;h1&gt;Hello World&lt;/h1&gt;');
+      }
+      socket.end();
+    });
+  })
+  .listen(8080);
+</code></pre>
+<h4 id="_client_"><em>Client:</em></h4>
+<pre><code class="language-js">const net = require('net');
+
+const client = new net.Socket();
+
+client.connect('8080', 'localhost', () =&gt; {
+  client.write('GET index.html\r\n');
+});
+
+client.on('data', (data) =&gt; {
+  console.info(`Response from server: ${data.toString()}`);
+  client.end();
+});
+</code></pre>
+
+</content>
+<p>
+  
+</p>
+
+  </main>
+  <footer>
+</footer>
+
+    
+</body>
+
+</html>

@@ -6,8 +6,15 @@
     <description>Recent content on Atif Afzal</description>
     <generator>Hugo</generator>
     <language>en-us</language>
-    <lastBuildDate>Wed, 11 Sep 2024 00:00:00 +0000</lastBuildDate>
+    <lastBuildDate>Sat, 25 Jan 2025 00:00:00 +0000</lastBuildDate>
     <atom:link href="https://atfzl.com/index.xml" rel="self" type="application/rss+xml" />
+    <item>
+      <title>HTTP 0.9</title>
+      <link>https://atfzl.com/articles/http-09/</link>
+      <pubDate>Sat, 25 Jan 2025 00:00:00 +0000</pubDate>
+      <guid>https://atfzl.com/articles/http-09/</guid>
+      <description>HTTP 0.9 The first version of Hyper Text Transfer Protocol (HTTP) Simple protocol without any headers Supported only GET method Request GET /index.html Response &amp;lt;h1&amp;gt;Hello World&amp;lt;/h1&amp;gt; Server: const net = require(&#39;net&#39;); net .createServer((socket) =&amp;gt; { socket.on(&#39;data&#39;, (data) =&amp;gt; { if (data.toString() === &#39;GET /index.html\r\n&#39;) { socket.write(&#39;&amp;lt;h1&amp;gt;Hello World&amp;lt;/h1&amp;gt;&#39;); } socket.end(); }); }) .listen(8080); Client: const net = require(&#39;net&#39;); const client = new net.Socket(); client.connect(&#39;8080&#39;, &#39;localhost&#39;, () =&amp;gt; { client.write(&#39;GET index.html\r\n&#39;); }); client.</description>
+    </item>
     <item>
       <title>Create Require</title>
       <link>https://atfzl.com/snippets/create-require/</link>
