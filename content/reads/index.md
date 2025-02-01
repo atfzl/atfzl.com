@@ -5,6 +5,8 @@ menu = "main"
 
 ## _2025_
 
+__1984__, George Orwell
+
 __Why Can't I Just Enjoy Things?__, Pierre Novellie
 
 ## _<= 2024_
