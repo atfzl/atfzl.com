@@ -11,8 +11,6 @@ __Why Can't I Just Enjoy Things?__, Pierre Novellie
 
 ## _<= 2024_
 
-__Manifest__, Roxie Nafousi
-
 __Coward__, Tim Clare
 
 __Zero to One__, Peter Thiel, Blake Masters
@@ -20,6 +18,8 @@ __Zero to One__, Peter Thiel, Blake Masters
 __Akira Volume 2__, Katsuhiro Otomo
 
 __Akira Volume 1__, Katsuhiro Otomo
+
+__Manifest__, Roxie Nafousi
 
 __Slow Productivity__, Cal Newport
 
