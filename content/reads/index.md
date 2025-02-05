@@ -3,6 +3,14 @@ title = "Reads"
 menu = "main"
 +++
 
+## _Currently Reading_
+
+__Advanced React__, Nadia Makarevich
+
+__About Face__, Alan Cooper, et al.
+
+----
+
 ## _2025_
 
 __1984__, George Orwell
