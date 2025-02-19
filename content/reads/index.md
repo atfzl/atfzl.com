@@ -5,6 +5,8 @@ menu = "main"
 
 ## _2025_
 
+__Unmasking Autism__, Devon Price
+
 __1984__, George Orwell
 
 __Why Can't I Just Enjoy Things?__, Pierre Novellie
