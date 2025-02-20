@@ -5,7 +5,7 @@ menu = "main"
 
 ## _2025_
 
-__Unmasking Autism__, Devon Price
+__[Unmasking Autism](/articles/unmasking-autism/)__, Devon Price
 
 __1984__, George Orwell
 
