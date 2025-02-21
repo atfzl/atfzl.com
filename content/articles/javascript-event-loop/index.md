@@ -3,8 +3,6 @@ title = "JavaScript Event Loop: The Definitive Edition"
 date = "2023-03-08"
 +++
 
-# JavaScript Event Loop: The Definitive Edition
-
 _Note: We'll cover the event loop in context of browsers and not other runtimes like Node.js_
 
 The event loop is a mechanism/algorithm/set of rules that specifies how asynchronous code is handled in JavaScript. This is important because JavaScript is single threaded, it can run one thing at a time. When the main thread is busy, we queue the pending events and these are run later when the main thread is available.

@@ -34,7 +34,7 @@
   <meta itemprop="description" content="require in node ESM">
   <meta itemprop="datePublished" content="2024-09-11T00:00:00+00:00">
   <meta itemprop="dateModified" content="2024-09-11T00:00:00+00:00">
-  <meta itemprop="wordCount" content="15">
+  <meta itemprop="wordCount" content="10">
 <meta name="referrer" content="no-referrer-when-downgrade" />
 
   <style>
@@ -219,8 +219,10 @@
 </p>
 
 <content>
-  <h1 id="using-require-in-esm-nodejs">Using require in ESM Node.js</h1>
-<pre><code class="language-js">import { createRequire } from 'module'
+  
+  <h1>Create Require</h1>
+  
+  <pre><code class="language-js">import { createRequire } from 'module'
 
 
 const require = createRequire(import.meta.url);

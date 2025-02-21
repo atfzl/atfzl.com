@@ -8,7 +8,7 @@
 <link rel="shortcut icon" href="https://atfzl.com/favicon.ico" />
 <title>Making Cypress Integration Tests Less Flaky | Atif Afzal</title>
 <meta name="title" content="Making Cypress Integration Tests Less Flaky" />
-<meta name="description" content="Making Cypress Integration Tests Less Flaky TL;DR Interleave Cypress commands like .find, .get, .first, .eq, .type with Cypress assertions like .should, .contains. Cypress runs only the last command when retrying. Interleaving act as guards to ensure we reach to the correct element which also helps avoiding detached parent errors.
+<meta name="description" content="TL;DR Interleave Cypress commands like .find, .get, .first, .eq, .type with Cypress assertions like .should, .contains. Cypress runs only the last command when retrying. Interleaving act as guards to ensure we reach to the correct element which also helps avoiding detached parent errors.
 Don&rsquo;t just wait for network calls, wait for the UI to be updated with the network data. If a network call has finished, it doesn&rsquo;t mean the UI would be updated immediately." />
 <meta name="keywords" content="" />
 
@@ -16,7 +16,7 @@ Don&rsquo;t just wait for network calls, wait for the UI to be updated with the 
 <meta property="og:url" content="https://atfzl.com/articles/making-cypress-integration-tests-less-flaky/">
   <meta property="og:site_name" content="Atif Afzal">
   <meta property="og:title" content="Making Cypress Integration Tests Less Flaky">
-  <meta property="og:description" content="Making Cypress Integration Tests Less Flaky TL;DR Interleave Cypress commands like .find, .get, .first, .eq, .type with Cypress assertions like .should, .contains. Cypress runs only the last command when retrying. Interleaving act as guards to ensure we reach to the correct element which also helps avoiding detached parent errors.
+  <meta property="og:description" content="TL;DR Interleave Cypress commands like .find, .get, .first, .eq, .type with Cypress assertions like .should, .contains. Cypress runs only the last command when retrying. Interleaving act as guards to ensure we reach to the correct element which also helps avoiding detached parent errors.
 Don’t just wait for network calls, wait for the UI to be updated with the network data. If a network call has finished, it doesn’t mean the UI would be updated immediately.">
   <meta property="og:locale" content="en-us">
   <meta property="og:type" content="article">
@@ -27,18 +27,18 @@ Don’t just wait for network calls, wait for the UI to be updated with the netw
 
 
 <meta name="twitter:card" content="summary"><meta name="twitter:title" content="Making Cypress Integration Tests Less Flaky">
-<meta name="twitter:description" content="Making Cypress Integration Tests Less Flaky TL;DR Interleave Cypress commands like .find, .get, .first, .eq, .type with Cypress assertions like .should, .contains. Cypress runs only the last command when retrying. Interleaving act as guards to ensure we reach to the correct element which also helps avoiding detached parent errors.
+<meta name="twitter:description" content="TL;DR Interleave Cypress commands like .find, .get, .first, .eq, .type with Cypress assertions like .should, .contains. Cypress runs only the last command when retrying. Interleaving act as guards to ensure we reach to the correct element which also helps avoiding detached parent errors.
 Don&rsquo;t just wait for network calls, wait for the UI to be updated with the network data. If a network call has finished, it doesn&rsquo;t mean the UI would be updated immediately.">
 
 
 
 
   <meta itemprop="name" content="Making Cypress Integration Tests Less Flaky">
-  <meta itemprop="description" content="Making Cypress Integration Tests Less Flaky TL;DR Interleave Cypress commands like .find, .get, .first, .eq, .type with Cypress assertions like .should, .contains. Cypress runs only the last command when retrying. Interleaving act as guards to ensure we reach to the correct element which also helps avoiding detached parent errors.
+  <meta itemprop="description" content="TL;DR Interleave Cypress commands like .find, .get, .first, .eq, .type with Cypress assertions like .should, .contains. Cypress runs only the last command when retrying. Interleaving act as guards to ensure we reach to the correct element which also helps avoiding detached parent errors.
 Don&rsquo;t just wait for network calls, wait for the UI to be updated with the network data. If a network call has finished, it doesn&rsquo;t mean the UI would be updated immediately.">
   <meta itemprop="datePublished" content="2022-02-01T00:00:00+00:00">
   <meta itemprop="dateModified" content="2022-02-01T00:00:00+00:00">
-  <meta itemprop="wordCount" content="576">
+  <meta itemprop="wordCount" content="570">
 <meta name="referrer" content="no-referrer-when-downgrade" />
 
   <style>
@@ -223,8 +223,10 @@ Don&rsquo;t just wait for network calls, wait for the UI to be updated with the 
 </p>
 
 <content>
-  <h1 id="making-cypress-integration-tests-less-flaky">Making Cypress Integration Tests Less Flaky</h1>
-<hr>
+  
+  <h1>Making Cypress Integration Tests Less Flaky</h1>
+  
+  <hr>
 <h2 id="tldr">TL;DR</h2>
 <ol>
 <li>Interleave <a href="https://www.cypress.io">Cypress</a> commands like <code>.find</code>, <code>.get</code>, <code>.first</code>, <code>.eq</code>, <code>.type</code> with Cypress assertions like <code>.should</code>, <code>.contains</code>.

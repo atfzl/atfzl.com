@@ -3,7 +3,6 @@ title = "Understanding Solid: JSX"
 date = "2019-11-25"
 +++
 
-# Understanding Solid: JSX
 [Solid](https://github.com/ryansolid/solid) uses [JSX](https://facebook.github.io/jsx/) to render vanilla DOM elements. In React the `<div />` compiles to `React.createElement('div')` but in Solid you could say it compiles to `document.createElement('div')` (actually it uses HTML templates, more on this ahead).
 
 ## Hello World component:

@@ -4,8 +4,6 @@ description = "Using iTerm trigger to make text in terminal clickable"
 date = "2019-11-19"
 +++
 
-# Using iTerm triggers
-
 iTerm triggers can be used for converting text in your terminal to URLs and make them clickable. This is useful for creating JIRA issue links whenever there is a `JIRA-1234` like pattern.
 
 ## Steps: 

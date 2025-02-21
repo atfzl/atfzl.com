@@ -8,7 +8,7 @@
 <link rel="shortcut icon" href="https://atfzl.com/favicon.ico" />
 <title>Understanding Solid: JSX | Atif Afzal</title>
 <meta name="title" content="Understanding Solid: JSX" />
-<meta name="description" content="Understanding Solid: JSX Solid uses JSX to render vanilla DOM elements. In React the &lt;div /&gt; compiles to React.createElement(&#39;div&#39;) but in Solid you could say it compiles to document.createElement(&#39;div&#39;) (actually it uses HTML templates, more on this ahead).
+<meta name="description" content="Solid uses JSX to render vanilla DOM elements. In React the &lt;div /&gt; compiles to React.createElement(&#39;div&#39;) but in Solid you could say it compiles to document.createElement(&#39;div&#39;) (actually it uses HTML templates, more on this ahead).
 Hello World component: function HelloWorld() { return ( &lt;div&gt; Hello World &lt;/div&gt; ); } This will (conceptually) compile to:
 function HelloWorld() { const el$ = document.createElement(&#39;div&#39;); el$.innerText = &#39;Hello World&#39;; return el$; } Actually solid uses HTML template element because it is more performant for creating new instances from same template." />
 <meta name="keywords" content="" />
@@ -17,7 +17,7 @@ function HelloWorld() { const el$ = document.createElement(&#39;div&#39;); el$.i
 <meta property="og:url" content="https://atfzl.com/articles/understanding-solid-jsx/">
   <meta property="og:site_name" content="Atif Afzal">
   <meta property="og:title" content="Understanding Solid: JSX">
-  <meta property="og:description" content="Understanding Solid: JSX Solid uses JSX to render vanilla DOM elements. In React the &lt;div /&gt; compiles to React.createElement(&#39;div&#39;) but in Solid you could say it compiles to document.createElement(&#39;div&#39;) (actually it uses HTML templates, more on this ahead).
+  <meta property="og:description" content="Solid uses JSX to render vanilla DOM elements. In React the &lt;div /&gt; compiles to React.createElement(&#39;div&#39;) but in Solid you could say it compiles to document.createElement(&#39;div&#39;) (actually it uses HTML templates, more on this ahead).
 Hello World component: function HelloWorld() { return ( &lt;div&gt; Hello World &lt;/div&gt; ); } This will (conceptually) compile to:
 function HelloWorld() { const el$ = document.createElement(&#39;div&#39;); el$.innerText = &#39;Hello World&#39;; return el$; } Actually solid uses HTML template element because it is more performant for creating new instances from same template.">
   <meta property="og:locale" content="en-us">
@@ -29,7 +29,7 @@ function HelloWorld() { const el$ = document.createElement(&#39;div&#39;); el$.i
 
 
 <meta name="twitter:card" content="summary"><meta name="twitter:title" content="Understanding Solid: JSX">
-<meta name="twitter:description" content="Understanding Solid: JSX Solid uses JSX to render vanilla DOM elements. In React the &lt;div /&gt; compiles to React.createElement(&#39;div&#39;) but in Solid you could say it compiles to document.createElement(&#39;div&#39;) (actually it uses HTML templates, more on this ahead).
+<meta name="twitter:description" content="Solid uses JSX to render vanilla DOM elements. In React the &lt;div /&gt; compiles to React.createElement(&#39;div&#39;) but in Solid you could say it compiles to document.createElement(&#39;div&#39;) (actually it uses HTML templates, more on this ahead).
 Hello World component: function HelloWorld() { return ( &lt;div&gt; Hello World &lt;/div&gt; ); } This will (conceptually) compile to:
 function HelloWorld() { const el$ = document.createElement(&#39;div&#39;); el$.innerText = &#39;Hello World&#39;; return el$; } Actually solid uses HTML template element because it is more performant for creating new instances from same template.">
 
@@ -37,12 +37,12 @@ function HelloWorld() { const el$ = document.createElement(&#39;div&#39;); el$.i
 
 
   <meta itemprop="name" content="Understanding Solid: JSX">
-  <meta itemprop="description" content="Understanding Solid: JSX Solid uses JSX to render vanilla DOM elements. In React the &lt;div /&gt; compiles to React.createElement(&#39;div&#39;) but in Solid you could say it compiles to document.createElement(&#39;div&#39;) (actually it uses HTML templates, more on this ahead).
+  <meta itemprop="description" content="Solid uses JSX to render vanilla DOM elements. In React the &lt;div /&gt; compiles to React.createElement(&#39;div&#39;) but in Solid you could say it compiles to document.createElement(&#39;div&#39;) (actually it uses HTML templates, more on this ahead).
 Hello World component: function HelloWorld() { return ( &lt;div&gt; Hello World &lt;/div&gt; ); } This will (conceptually) compile to:
 function HelloWorld() { const el$ = document.createElement(&#39;div&#39;); el$.innerText = &#39;Hello World&#39;; return el$; } Actually solid uses HTML template element because it is more performant for creating new instances from same template.">
   <meta itemprop="datePublished" content="2019-11-25T00:00:00+00:00">
   <meta itemprop="dateModified" content="2019-11-25T00:00:00+00:00">
-  <meta itemprop="wordCount" content="430">
+  <meta itemprop="wordCount" content="427">
 <meta name="referrer" content="no-referrer-when-downgrade" />
 
   <style>
@@ -227,8 +227,10 @@ function HelloWorld() { const el$ = document.createElement(&#39;div&#39;); el$.i
 </p>
 
 <content>
-  <h1 id="understanding-solid-jsx">Understanding Solid: JSX</h1>
-<p><a href="https://github.com/ryansolid/solid">Solid</a> uses <a href="https://facebook.github.io/jsx/">JSX</a> to render vanilla DOM elements. In React the <code>&lt;div /&gt;</code> compiles to <code>React.createElement('div')</code> but in Solid you could say it compiles to <code>document.createElement('div')</code> (actually it uses HTML templates, more on this ahead).</p>
+  
+  <h1>Understanding Solid: JSX</h1>
+  
+  <p><a href="https://github.com/ryansolid/solid">Solid</a> uses <a href="https://facebook.github.io/jsx/">JSX</a> to render vanilla DOM elements. In React the <code>&lt;div /&gt;</code> compiles to <code>React.createElement('div')</code> but in Solid you could say it compiles to <code>document.createElement('div')</code> (actually it uses HTML templates, more on this ahead).</p>
 <h2 id="hello-world-component">Hello World component:</h2>
 <pre><code class="language-js">function HelloWorld() {
   return (

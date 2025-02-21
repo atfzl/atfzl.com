@@ -1,6 +1,7 @@
 +++
 title = "Reads"
 menu = "main"
+headingless = true
 +++
 
 ## _2025_

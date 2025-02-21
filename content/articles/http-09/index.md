@@ -3,8 +3,6 @@ title = "HTTP 0.9"
 date = "2025-01-25"
 +++
 
-# HTTP 0.9
-
 - The first version of Hyper Text Transfer Protocol (HTTP)
 - Simple protocol without any headers
 - Supported only GET method

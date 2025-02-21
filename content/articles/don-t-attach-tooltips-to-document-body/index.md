@@ -3,8 +3,6 @@ title = "Don't attach tooltips to document.body"
 date = "2021-03-10"
 +++
 
-# Don't attach tooltips to document.body
-
 ## TL;DR
 Instead of attaching tooltips directly to `document.body`, attach them to a predefined div in `document.body`.
 

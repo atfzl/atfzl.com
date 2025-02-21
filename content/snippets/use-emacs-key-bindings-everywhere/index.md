@@ -3,8 +3,6 @@ title = "Use emacs key bindings everywhere"
 date = "2019-11-12"
 +++
 
-# Use emacs key bindings everywhere
-
 I am used to emacs keybinding.
 
 My `caps lock` is mapped to `ctrl` to avoid [emacs pinky](https://www.google.com/search?q=emacs+pinky).

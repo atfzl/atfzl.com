@@ -3,8 +3,6 @@ title = "Understanding Solid: Reactivity Basics"
 date = "2019-10-10"
 +++
 
-# Understanding Solid: Reactivity Basics
-
 [Solid](https://github.com/ryansolid/solid) is a Reactive library for creating user interfaces. Solid updates the DOM only where it is required, without using Virtual DOM. Solid is [fast](https://krausest.github.io/js-framework-benchmark/current.html).
 
 To understand Solid, first we have to understand its Reactive ideology.

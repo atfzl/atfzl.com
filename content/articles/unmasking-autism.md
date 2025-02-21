@@ -3,8 +3,6 @@ title = "Notes: Unmasking Autism"
 date = "2025-02-20"
 +++
 
-# Notes: Unmasking Autism
-
 Author: Devon Price |
 [Book Link](https://www.amazon.in/UNMASKING-AUTISM-Devon-Price/dp/1800960549/ref=sr_1_3?crid=13IKK0QRZ3IBZ&dib=eyJ2IjoiMSJ9.yRKFSl-GfaNWFpIJOoCO_6e8TgjIc3cvYz9ss5QlqsN_9IPpO9CvjVVtzxVADGkIlAJO-R_ozWTECnAY2U55tqE8sJD5hDZKAgnKV8QT6PD_mrC_DAT9modKK4O3vS9DmkNCbJ2AO3Pia_eX3OwcX4K7Yp1aI9os7S2yY3H-yqsKRTq6f4Qau79_02e_yA9r8rZIH4vqXWbGyRUB3E6R0TlU7DOBRxu8CD01KDlGTQI.Vg4TpFslvTuefJtRV1E6UjFcF8rKuqQ9vYhZniu95WY&dib_tag=se&keywords=unmasking+autism&qid=1740074463&sprefix=unmasking+autis%2Caps%2C285&sr=8-3)
 

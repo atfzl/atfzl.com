@@ -3,8 +3,6 @@ title = "Optimizing Netlify"
 date = "2021-09-06"
 +++
 
-# Optimizing Netlify
-
 We'll optimize Netlify's Single Page web application load time.
 
 Log in to https://netlify.com.

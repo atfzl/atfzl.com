@@ -9,6 +9,9 @@
 </p>
 {{ end }}
 <content>
+  {{ if not .Params.headingless }}
+  <h1>{{ .Title }}</h1>
+  {{ end }}
   {{ .Content }}
 </content>
 <p>

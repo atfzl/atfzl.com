@@ -3,8 +3,6 @@ title = "Making Cypress Integration Tests Less Flaky"
 date = "2022-02-01"
 +++
 
-# Making Cypress Integration Tests Less Flaky
-
 ---
 
 ## TL;DR
