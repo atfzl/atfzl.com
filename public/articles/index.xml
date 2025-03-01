@@ -6,8 +6,15 @@
     <description>Recent content in Articles on Atif Afzal</description>
     <generator>Hugo</generator>
     <language>en-us</language>
-    <lastBuildDate>Thu, 20 Feb 2025 00:00:00 +0000</lastBuildDate>
+    <lastBuildDate>Sat, 01 Mar 2025 00:00:00 +0000</lastBuildDate>
     <atom:link href="https://atfzl.com/articles/index.xml" rel="self" type="application/rss+xml" />
+    <item>
+      <title>Matching fonts with Figma</title>
+      <link>https://atfzl.com/articles/matching-fonts-with-figma/</link>
+      <pubDate>Sat, 01 Mar 2025 00:00:00 +0000</pubDate>
+      <guid>https://atfzl.com/articles/matching-fonts-with-figma/</guid>
+      <description>When I joined Clazar, I noticed that the fonts in our web application looked bolder than on Figma. The font weights and all other config was same as in Figma but, it looked different. The font looked bolder than on Figma.&#xA;Because I knew Figma is also a web app, I had a hunch that Figma might have anti-aliasing enabled and we had not. This was actually true when I tried it out.</description>
+    </item>
     <item>
       <title>Notes: Unmasking Autism</title>
       <link>https://atfzl.com/articles/unmasking-autism/</link>

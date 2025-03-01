@@ -1,0 +1,252 @@
+<!DOCTYPE html>
+<html lang="en-us">
+
+<head>
+  <meta http-equiv="X-Clacks-Overhead" content="GNU Terry Pratchett" />
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<link rel="shortcut icon" href="https://atfzl.com/favicon.ico" />
+<title>Matching fonts with Figma | Atif Afzal</title>
+<meta name="title" content="Matching fonts with Figma" />
+<meta name="description" content="When I joined Clazar, I noticed that the fonts in our web application looked bolder than on Figma. The font weights and all other config was same as in Figma but, it looked different. The font looked bolder than on Figma.
+Because I knew Figma is also a web app, I had a hunch that Figma might have anti-aliasing enabled and we had not. This was actually true when I tried it out." />
+<meta name="keywords" content="" />
+
+
+<meta property="og:url" content="https://atfzl.com/articles/matching-fonts-with-figma/">
+  <meta property="og:site_name" content="Atif Afzal">
+  <meta property="og:title" content="Matching fonts with Figma">
+  <meta property="og:description" content="When I joined Clazar, I noticed that the fonts in our web application looked bolder than on Figma. The font weights and all other config was same as in Figma but, it looked different. The font looked bolder than on Figma.
+Because I knew Figma is also a web app, I had a hunch that Figma might have anti-aliasing enabled and we had not. This was actually true when I tried it out.">
+  <meta property="og:locale" content="en-us">
+  <meta property="og:type" content="article">
+    <meta property="article:section" content="articles">
+    <meta property="article:published_time" content="2025-03-01T00:00:00+00:00">
+    <meta property="article:modified_time" content="2025-03-01T00:00:00+00:00">
+
+
+
+<meta name="twitter:card" content="summary"><meta name="twitter:title" content="Matching fonts with Figma">
+<meta name="twitter:description" content="When I joined Clazar, I noticed that the fonts in our web application looked bolder than on Figma. The font weights and all other config was same as in Figma but, it looked different. The font looked bolder than on Figma.
+Because I knew Figma is also a web app, I had a hunch that Figma might have anti-aliasing enabled and we had not. This was actually true when I tried it out.">
+
+
+
+
+  <meta itemprop="name" content="Matching fonts with Figma">
+  <meta itemprop="description" content="When I joined Clazar, I noticed that the fonts in our web application looked bolder than on Figma. The font weights and all other config was same as in Figma but, it looked different. The font looked bolder than on Figma.
+Because I knew Figma is also a web app, I had a hunch that Figma might have anti-aliasing enabled and we had not. This was actually true when I tried it out.">
+  <meta itemprop="datePublished" content="2025-03-01T00:00:00+00:00">
+  <meta itemprop="dateModified" content="2025-03-01T00:00:00+00:00">
+  <meta itemprop="wordCount" content="95">
+<meta name="referrer" content="no-referrer-when-downgrade" />
+
+  <style>
+  :root {
+    --width: 640px;
+    --font-main: Verdana, sans-serif;
+    --font-secondary: Verdana, sans-serif;
+    --font-scale: 1em;
+    --background-color: #fff;
+    --heading-color: #222;
+    --text-color: #444;
+    --link-color: #3273dc;
+    --visited-color: #8b6fcb;
+    --code-background-color: #ececec;
+    --code-color: #222;
+    --blockquote-color: #222;
+  }
+
+   
+
+  body {
+    font-family: var(--font-secondary);
+    font-size: var(--font-scale);
+    margin: auto;
+    margin-top: 60px;
+    padding: 20px;
+    max-width: var(--width);
+    text-align: left;
+    background-color: var(--background-color);
+    word-wrap: break-word;
+    overflow-wrap: break-word;
+    line-height: 1.5;
+    color: var(--text-color);
+  }
+
+  h1,
+  h2,
+  h3,
+  h4,
+  h5,
+  h6 {
+    font-family: var(--font-main);
+    color: var(--heading-color);
+    margin-bottom: 0;
+  }
+
+  a {
+    color: var(--link-color);
+    cursor: pointer;
+    text-decoration: none;
+  }
+
+  a:hover {
+    text-decoration: underline;
+  }
+
+  nav a {
+    margin-right: 8px;
+  }
+
+  strong,
+  b {
+    color: var(--heading-color);
+  }
+
+  button {
+    margin: 0;
+    cursor: pointer;
+  }
+
+  main {
+    line-height: 1.6;
+  }
+
+  table {
+    width: 100%;
+  }
+
+  hr {
+    border: 0;
+    border-top: 1px dashed;
+  }
+
+  img {
+    max-width: 100%;
+  }
+
+  code {
+    font-size: 0.85em;
+    font-family: Menlo, Courier, monospace;
+    padding: 2px;
+    background-color: var(--code-background-color);
+    color: var(--code-color);
+    border-radius: 3px;
+  }
+
+  pre {
+    background-color: var(--code-background-color);
+    padding: 12px;
+    overflow-x: auto;
+  }
+
+  pre code {
+    padding: 0;
+  }
+
+  blockquote {
+    border-left: 1px solid #999;
+    color: var(--code-color);
+    padding-left: 20px;
+    font-style: italic;
+  }
+
+  footer {
+    padding: 25px 0;
+    text-align: center;
+  }
+
+  .title:hover {
+    text-decoration: none;
+  }
+
+  .title h1 {
+    font-size: 1.5em;
+  }
+
+  .inline {
+    width: auto !important;
+  }
+
+  .highlight,
+  .code {
+    padding: 1px 15px;
+    background-color: var(--code-background-color);
+    color: var(--code-color);
+    border-radius: 3px;
+    margin-block-start: 1em;
+    margin-block-end: 1em;
+    overflow-x: auto;
+  }
+
+   
+  ul.blog-posts {
+    list-style-type: none;
+    padding: unset;
+  }
+
+  ul.blog-posts li {
+    display: flex;
+  }
+
+  ul.blog-posts li span {
+    flex: 0 0 130px;
+  }
+
+  ul.blog-posts li a:visited {
+    color: var(--visited-color);
+  }
+</style>
+</head>
+
+<body>
+  <header><nav><a href="/">Home</a>
+
+<a href="/articles/">Articles</a>
+
+<a href="/reads/">Reads</a>
+
+<a href="/snippets/">Snippets</a>
+
+
+</nav>
+</header>
+  <main>
+
+<p style="margin-bottom:-1.2em;opacity: 0.7;">
+  <i>
+    <time datetime='2025-03-01' pubdate>
+      01 Mar, 2025
+    </time>
+  </i>
+</p>
+
+<content>
+  
+  <h1>Matching fonts with Figma</h1>
+  
+  <p>When I joined <a href="https://clazar.io">Clazar</a>, I noticed that the fonts in our web application looked bolder than on Figma. The font weights and all other config was same as in Figma but, it looked different. The font looked bolder than on Figma.</p>
+<p><img src="images/old_figma_vs_web_app.png" alt="old_figma_vs_web_app"></p>
+<p>Because I knew Figma is also a web app, I had a hunch that Figma might have anti-aliasing enabled and we had not. This was actually true when I tried it out. Just adding this line fixed the font rendering issue:</p>
+<pre><code class="language-css">body {
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+</code></pre>
+<p><img src="images/fixed_figma_vs_web_app.png" alt="fixed_figma_vs_web_app"></p>
+<p>A curious case of <a href="https://www.joelonsoftware.com/2002/11/11/the-law-of-leaky-abstractions/">Leaky Abstraction</a>!</p>
+
+</content>
+<p>
+  
+</p>
+
+  </main>
+  <footer>
+</footer>
+
+    
+</body>
+
+</html>
