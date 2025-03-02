@@ -1,4 +1,0 @@
-+++
-title = "Snippets"
-menu = "main"
-+++

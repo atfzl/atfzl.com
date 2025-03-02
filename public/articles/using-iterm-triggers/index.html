@@ -2,45 +2,41 @@
 <html lang="en-us">
 
 <head>
-	<meta name="generator" content="Hugo 0.125.4">
   <meta http-equiv="X-Clacks-Overhead" content="GNU Terry Pratchett" />
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 <link rel="shortcut icon" href="https://atfzl.com/favicon.ico" />
-<title>Atif Afzal</title>
-<meta name="title" content="Atif Afzal" />
-<meta name="description" content="" />
+<title>Using iTerm triggers | Atif Afzal</title>
+<meta name="title" content="Using iTerm triggers" />
+<meta name="description" content="Using iTerm trigger to make text in terminal clickable" />
 <meta name="keywords" content="" />
 
 
-<meta property="og:url" content="https://atfzl.com/">
+<meta property="og:url" content="https://atfzl.com/articles/using-iterm-triggers/">
   <meta property="og:site_name" content="Atif Afzal">
-  <meta property="og:title" content="Atif Afzal">
-  <meta property="og:description" content="Contact atif@atfzl.com
-github.com/atfzl
-linkedin.com/in/atfzl
-Resume Resume (pdf)">
+  <meta property="og:title" content="Using iTerm triggers">
+  <meta property="og:description" content="Using iTerm trigger to make text in terminal clickable">
   <meta property="og:locale" content="en-us">
-  <meta property="og:type" content="website">
+  <meta property="og:type" content="article">
+    <meta property="article:section" content="articles">
+    <meta property="article:published_time" content="2019-11-19T00:00:00+00:00">
+    <meta property="article:modified_time" content="2019-11-19T00:00:00+00:00">
 
 
 
-<meta name="twitter:card" content="summary"><meta name="twitter:title" content="">
-<meta name="twitter:description" content="">
+<meta name="twitter:card" content="summary"><meta name="twitter:title" content="Using iTerm triggers">
+<meta name="twitter:description" content="Using iTerm trigger to make text in terminal clickable">
 
 
 
 
-  <meta itemprop="name" content="Atif Afzal">
-  <meta itemprop="description" content="Contact atif@atfzl.com
-github.com/atfzl
-linkedin.com/in/atfzl
-Resume Resume (pdf)">
-  <meta itemprop="dateModified" content="2025-03-01T00:00:00+00:00">
-  <meta itemprop="wordCount" content="7">
+  <meta itemprop="name" content="Using iTerm triggers">
+  <meta itemprop="description" content="Using iTerm trigger to make text in terminal clickable">
+  <meta itemprop="datePublished" content="2019-11-19T00:00:00+00:00">
+  <meta itemprop="dateModified" content="2019-11-19T00:00:00+00:00">
+  <meta itemprop="wordCount" content="73">
 <meta name="referrer" content="no-referrer-when-downgrade" />
 
-  <link rel="alternate" type="application/rss+xml" href="https://atfzl.com/index.xml" title="Atif Afzal" />
   <style>
   :root {
     --width: 640px;
@@ -211,13 +207,36 @@ Resume Resume (pdf)">
 </nav>
 </header>
   <main>
-<h2 id="contact">Contact</h2>
-<p><a href="mailto:atif@atfzl.com">atif@atfzl.com</a><br>
-<a href="https://github.com/atfzl">github.com/atfzl</a><br>
-<a href="https://linkedin.com/in/atfzl">linkedin.com/in/atfzl</a></p>
-<h2 id="resume">Resume</h2>
-<p><a href="/files/atif_afzal_resume.pdf">Resume (pdf)</a></p>
 
+<p style="margin-bottom:-1.2em;opacity: 0.7;">
+  <i>
+    <time datetime='2019-11-19' pubdate>
+      19 Nov, 2019
+    </time>
+  </i>
+</p>
+
+<content>
+  
+  <h1>Using iTerm triggers</h1>
+  
+  <p>iTerm triggers can be used for converting text in your terminal to URLs and make them clickable. This is useful for creating JIRA issue links whenever there is a <code>JIRA-1234</code> like pattern.</p>
+<h2 id="steps">Steps:</h2>
+<p>Go to
+<code>iTerm -&gt; Preferences -&gt; Profiles -&gt; Advanced -&gt; Triggers Edit</code></p>
+<p><img src="images/_iterm_screenshot.png" alt="iterm preference"></p>
+<p>Add an entry in the table</p>
+<pre><code>Regular Expression: (?i)JIRA-\d+
+Action:             Make Hyperlink
+Parameters:         https://jira.yourhost.com/jira/browse/\0
+</code></pre>
+<p><img src="images/_table.png" alt="table"></p>
+<p>Now whenever there is a pattern with <code>JIRA-1234</code>, it will become a clickable hyperlink.</p>
+
+</content>
+<p>
+  
+</p>
 
   </main>
   <footer>

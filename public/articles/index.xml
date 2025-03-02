@@ -30,6 +30,20 @@
       <description>The first version of Hyper Text Transfer Protocol (HTTP) Simple protocol without any headers Supported only GET method Request GET /index.html Response &amp;lt;h1&amp;gt;Hello World&amp;lt;/h1&amp;gt; Server: const net = require(&#39;net&#39;); net .createServer((socket) =&amp;gt; { socket.on(&#39;data&#39;, (data) =&amp;gt; { if (data.toString() === &#39;GET /index.html\r\n&#39;) { socket.write(&#39;&amp;lt;h1&amp;gt;Hello World&amp;lt;/h1&amp;gt;&#39;); } socket.end(); }); }) .listen(8080); Client: const net = require(&#39;net&#39;); const client = new net.Socket(); client.connect(&#39;8080&#39;, &#39;localhost&#39;, () =&amp;gt; { client.write(&#39;GET index.html\r\n&#39;); }); client.on(&#39;data&#39;, (data) =&amp;gt; { console.</description>
     </item>
     <item>
+      <title>Create Require</title>
+      <link>https://atfzl.com/articles/create-require/</link>
+      <pubDate>Wed, 11 Sep 2024 00:00:00 +0000</pubDate>
+      <guid>https://atfzl.com/articles/create-require/</guid>
+      <description>import { createRequire } from &#39;module&#39; const require = createRequire(import.meta.url); </description>
+    </item>
+    <item>
+      <title>Git Blame</title>
+      <link>https://atfzl.com/articles/git-blame/</link>
+      <pubDate>Fri, 06 Sep 2024 00:00:00 +0000</pubDate>
+      <guid>https://atfzl.com/articles/git-blame/</guid>
+      <description>git blame -w ignores whitespaces&#xA;git blame -C checks for code movements between files in a commit.&#xA;Can use multiple -C:&#xA;git blame -w -C -C -C&#xA;Source: https://blog.gitbutler.com/git-tips-1-theres-a-git-config-for-that/</description>
+    </item>
+    <item>
       <title>JavaScript Event Loop: The Definitive Edition</title>
       <link>https://atfzl.com/articles/javascript-event-loop/</link>
       <pubDate>Wed, 08 Mar 2023 00:00:00 +0000</pubDate>
@@ -65,11 +79,32 @@
       <description>Solid uses JSX to render vanilla DOM elements. In React the &amp;lt;div /&amp;gt; compiles to React.createElement(&#39;div&#39;) but in Solid you could say it compiles to document.createElement(&#39;div&#39;) (actually it uses HTML templates, more on this ahead).&#xA;Hello World component: function HelloWorld() { return ( &amp;lt;div&amp;gt; Hello World &amp;lt;/div&amp;gt; ); } This will (conceptually) compile to:&#xA;function HelloWorld() { const el$ = document.createElement(&#39;div&#39;); el$.innerText = &#39;Hello World&#39;; return el$; } Actually solid uses HTML template element because it is more performant for creating new instances from same template.</description>
     </item>
     <item>
+      <title>Using iTerm triggers</title>
+      <link>https://atfzl.com/articles/using-iterm-triggers/</link>
+      <pubDate>Tue, 19 Nov 2019 00:00:00 +0000</pubDate>
+      <guid>https://atfzl.com/articles/using-iterm-triggers/</guid>
+      <description>iTerm triggers can be used for converting text in your terminal to URLs and make them clickable. This is useful for creating JIRA issue links whenever there is a JIRA-1234 like pattern.&#xA;Steps: Go to iTerm -&amp;gt; Preferences -&amp;gt; Profiles -&amp;gt; Advanced -&amp;gt; Triggers Edit&#xA;Add an entry in the table&#xA;Regular Expression: (?i)JIRA-\d+ Action: Make Hyperlink Parameters: https://jira.yourhost.com/jira/browse/\0 Now whenever there is a pattern with JIRA-1234, it will become a clickable hyperlink.</description>
+    </item>
+    <item>
+      <title>Use emacs key bindings everywhere</title>
+      <link>https://atfzl.com/articles/use-emacs-key-bindings-everywhere/</link>
+      <pubDate>Tue, 12 Nov 2019 00:00:00 +0000</pubDate>
+      <guid>https://atfzl.com/articles/use-emacs-key-bindings-everywhere/</guid>
+      <description>I am used to emacs keybinding.&#xA;My caps lock is mapped to ctrl to avoid emacs pinky.&#xA;I am also used to making movements the emacs way , i.e.,&#xA;ctrl+f: right arrow ctrl+b: left arrow ctrl+p: up arrow ctrl+n: down arrow I have also remapped Ctrl+g to escape because I despise the escape key in the MacBook Pro touch bar.&#xA;Mac supports this keybinding in most applications but these do not work for all applications.</description>
+    </item>
+    <item>
       <title>Understanding Solid: Reactivity Basics</title>
       <link>https://atfzl.com/articles/understanding-solid-reactivity-basics/</link>
       <pubDate>Thu, 10 Oct 2019 00:00:00 +0000</pubDate>
       <guid>https://atfzl.com/articles/understanding-solid-reactivity-basics/</guid>
       <description>Solid is a Reactive library for creating user interfaces. Solid updates the DOM only where it is required, without using Virtual DOM. Solid is fast.&#xA;To understand Solid, first we have to understand its Reactive ideology.&#xA;Let’s take an example of a simple auto updating counter to show how the code looks like and explain how it works under the hood.&#xA;First a counter without a UI: Solid Counter - CodeSandbox</description>
+    </item>
+    <item>
+      <title>Using flow and eslint in Emacs</title>
+      <link>https://atfzl.com/articles/using-flow-and-eslint-in-emacs/</link>
+      <pubDate>Sun, 06 Nov 2016 00:00:00 +0000</pubDate>
+      <guid>https://atfzl.com/articles/using-flow-and-eslint-in-emacs/</guid>
+      <description>(require &#39;company) (require &#39;web-mode) (require &#39;flycheck) (require &#39;flycheck-flow) ;; flow auto complete ;; skip this if you don&#39;t use company-mode (eval-after-load &#39;company &#39;(add-to-list &#39;company-backends &#39;company-flow)) ;; add eslint and flow checkers to flycheck (flycheck-add-mode &#39;javascript-eslint &#39;web-mode) (flycheck-add-mode &#39;javascript-flow &#39;web-mode) ;;disable jshint since we prefer eslint checking (setq-default flycheck-disabled-checkers (append flycheck-disabled-checkers &#39;(javascript-jshint))) (defun jsWithEslint () &amp;quot;eslint for js files&amp;quot; (interactive) (web-mode) (web-mode-set-content-type &amp;quot;jsx&amp;quot;) (flycheck-disable-checker &#39;javascript-flow) (flycheck-select-checker &#39;javascript-eslint) (flycheck-mode)) (defun jsWithEslintFlow () &amp;quot;flow and eslint for js files&amp;quot; (interactive) (web-mode) (web-mode-set-content-type &amp;quot;jsx&amp;quot;) (flycheck-select-checker &#39;javascript-eslint) (flycheck-add-next-checker &#39;javascript-eslint &#39;javascript-flow) (flycheck-mode)) ;; set key shortcuts if you want ;; (global-set-key (kbd &amp;quot;C-c j&amp;quot;) &#39;jsWithEslint) ;; (global-set-key (kbd &amp;quot;C-c f&amp;quot;) &#39;jsWithEslintFlow) (add-to-list &#39;auto-mode-alist &#39;(&amp;quot;\\.</description>
     </item>
   </channel>
 </rss>
