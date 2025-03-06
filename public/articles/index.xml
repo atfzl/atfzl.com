@@ -6,8 +6,15 @@
     <description>Recent content in Articles on Atif Afzal</description>
     <generator>Hugo</generator>
     <language>en-us</language>
-    <lastBuildDate>Sat, 01 Mar 2025 00:00:00 +0000</lastBuildDate>
+    <lastBuildDate>Thu, 06 Mar 2025 00:00:00 +0000</lastBuildDate>
     <atom:link href="https://atfzl.com/articles/index.xml" rel="self" type="application/rss+xml" />
+    <item>
+      <title>Writing in the LLM Era</title>
+      <link>https://atfzl.com/articles/writing-in-llm-era/</link>
+      <pubDate>Thu, 06 Mar 2025 00:00:00 +0000</pubDate>
+      <guid>https://atfzl.com/articles/writing-in-llm-era/</guid>
+      <description>Web is filled with LLM generated trash. Looking all too similar, with too many hallucinations, with no real value. I am fed up of web having the same content regurgitated by everyone. Are these people writing for Humans to read or just for the sake of having content on the web?&#xA;Reading anything which resembles LLM generated text gives me the ick. It immediately loses credibility. I&amp;rsquo;d rather read some experts content with not so good writing than a noob with no new knowledge with perfect english.</description>
+    </item>
     <item>
       <title>Matching fonts with Figma</title>
       <link>https://atfzl.com/articles/matching-fonts-with-figma/</link>
