@@ -4,13 +4,25 @@ menu = "main"
 headingless = true
 +++
 
+## _Reading_
+
+__Advanced React__, Nadia Makarevich
+
+__The Pragmatic Progammer__, David Thomas and Andrew Hunt
+
+__About Face__, Alan Cooper, et al.
+
+---
+
 ## _2025_
 
-__[Unmasking Autism](/articles/unmasking-autism/)__, Devon Price
+__Unmasking Autism__, Devon Price
 
 __1984__, George Orwell
 
 __Why Can't I Just Enjoy Things?__, Pierre Novellie
+
+---
 
 ## _<= 2024_
 
