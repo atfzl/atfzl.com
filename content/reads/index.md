@@ -10,11 +10,13 @@ __Advanced React__, Nadia Makarevich
 
 __The Pragmatic Progammer__, David Thomas and Andrew Hunt
 
-__About Face__, Alan Cooper, et al.
+__About Face (Part II: Making Well-Behaved Products)__, Alan Cooper, et al.
 
 ---
 
 ## _2025_
+
+__About Face (Part I: Goal Oriented Design)__, Alan Cooper, et al.
 
 __Unmasking Autism__, Devon Price
 
