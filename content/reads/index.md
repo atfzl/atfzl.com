@@ -12,6 +12,8 @@ __The Pragmatic Progammer__, David Thomas and Andrew Hunt
 
 __About Face (Part II: Making Well-Behaved Products)__, Alan Cooper, et al.
 
+__The Hero With a Thousand Faces__, Joseph Campbell
+
 ---
 
 ## _2025_
